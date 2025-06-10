@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Approve Driver Application</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Driver Information</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Name:</strong> {{ rider.username }}</p>
+                                <p><strong>Email:</strong> {{ rider.email }}</p>
+                                <p><strong>Phone:</strong> {{ rider.phone }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>License Number:</strong> {{ profile.license_number }}</p>
+                                <p><strong>Status:</strong> <span class="badge bg-warning">Pending Approval</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if profile.vehicle %}
+                    <div class="mb-4">
+                        <h5>Driver's Vehicle Information</h5>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Make & Model:</strong> {{ profile.vehicle.make }} {{ profile.vehicle.model }}</p>
+                                        <p><strong>Year:</strong> {{ profile.vehicle.year }}</p>
+                                        <p><strong>License Plate:</strong> {{ profile.vehicle.license_plate }}</p>
+                                        <p><strong>Color:</strong> {{ profile.vehicle.color }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Vehicle Type:</strong> {{ profile.vehicle.vehicle_type|capitalize }}</p>
+                                        <p><strong>Capacity:</strong> {{ profile.vehicle.capacity }} passengers</p>
+                                        <p><strong>Base Fare:</strong> PKR {{ profile.vehicle.base_fare }}</p>
+                                        <p><strong>Per KM Rate:</strong> PKR {{ profile.vehicle.per_km_rate }}</p>
+                                        <p><strong>Per Minute Rate:</strong> PKR {{ profile.vehicle.per_minute_rate }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <form action="{{ url_for('admin.approve_rider', rider_id=rider.id) }}" method="post">
+                        <div class="mb-3">
+                            <label for="vehicle_id" class="form-label">Assign Vehicle</label>
+                            <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+                                <option value="">Select a vehicle</option>
+                                
+                                {% if profile.vehicle %}
+                                    <option value="{{ profile.vehicle.id }}" selected>
+                                        {{ profile.vehicle.make }} {{ profile.vehicle.model }} ({{ profile.vehicle.vehicle_type }} - {{ profile.vehicle.color }})
+                                        ✓ Driver's registered vehicle
+                                    </option>
+                                {% endif %}
+                                
+                                {% for vehicle in vehicles %}
+                                    {% if not profile.vehicle or vehicle.id != profile.vehicle.id %}
+                                        <option value="{{ vehicle.id }}">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.vehicle_type }} - {{ vehicle.color }})</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                {% if profile.vehicle %}
+                                    The driver's registered vehicle is selected by default. You can assign a different vehicle if needed.
+                                {% else %}
+                                    The driver will be assigned to this vehicle.
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('admin.riders') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> Back to Drivers
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i> Approve Driver
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

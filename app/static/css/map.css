@@ -1,0 +1,63 @@
+/* Custom styles for maps and vehicle display */
+
+/* Make vehicle icon pulse to draw attention */
+.vehicle-icon {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Style for vehicle popup */
+.vehicle-popup {
+    padding: 5px;
+}
+
+.vehicle-popup h6 {
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+/* Status badges */
+.badge.requested {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge.accepted {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
+.badge.in_progress {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.badge.completed {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.badge.cancelled {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+/* Rating stars */
+.rating {
+    color: #ffc107;
+}
+
+.rating.low {
+    color: #dc3545;
+}

@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body text-center p-4">
+                    <div class="position-relative mb-4 mx-auto" style="width: 150px; height: 150px;">
+                        <img src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Profile Picture" class="rounded-circle img-thumbnail shadow" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div class="position-absolute bottom-0 end-0">
+                            <button class="btn btn-sm btn-primary rounded-circle" title="Change photo" disabled>
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <h3 class="mb-1">{{ current_user.username }}</h3>
+                    <p class="text-muted mb-3">
+                        <span class="badge bg-primary">Customer</span>
+                    </p>
+                    <div class="d-flex justify-content-center mb-3">
+                        <div class="mx-2">
+                            <a href="mailto:{{ current_user.email }}" class="btn btn-light rounded-circle">
+                                <i class="fas fa-envelope text-primary"></i>
+                            </a>
+                        </div>
+                        {% if current_user.phone %}
+                        <div class="mx-2">
+                            <a href="tel:{{ current_user.phone }}" class="btn btn-light rounded-circle">
+                                <i class="fas fa-phone text-success"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="border-top pt-3">
+                        <div class="row text-start">
+                            <div class="col-12 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box me-3 bg-primary bg-opacity-10 rounded p-2">
+                                        <i class="fas fa-envelope text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Email</small>
+                                        <span>{{ current_user.email }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box me-3 bg-success bg-opacity-10 rounded p-2">
+                                        <i class="fas fa-phone text-success"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Phone</small>
+                                        <span>{{ current_user.phone or 'Not provided' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box me-3 bg-info bg-opacity-10 rounded p-2">
+                                        <i class="fas fa-calendar text-info"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Member Since</small>
+                                        <span>{{ current_user.created_at.strftime('%B %Y') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Quick Links</h5>
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('customer.dashboard') }}" class="list-group-item list-group-item-action border-0 px-0 py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box me-3 bg-primary bg-opacity-10 rounded p-2">
+                                    <i class="fas fa-tachometer-alt text-primary"></i>
+                                </div>
+                                <span>Dashboard</span>
+                                <i class="fas fa-chevron-right ms-auto"></i>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('customer.payment_methods') }}" class="list-group-item list-group-item-action border-0 px-0 py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box me-3 bg-success bg-opacity-10 rounded p-2">
+                                    <i class="fas fa-credit-card text-success"></i>
+                                </div>
+                                <span>Payment Methods</span>
+                                <i class="fas fa-chevron-right ms-auto"></i>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('customer.rides') }}" class="list-group-item list-group-item-action border-0 px-0 py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box me-3 bg-info bg-opacity-10 rounded p-2">
+                                    <i class="fas fa-car text-info"></i>
+                                </div>
+                                <span>My Rides</span>
+                                <i class="fas fa-chevron-right ms-auto"></i>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-edit me-2 text-primary"></i>
+                        Edit Profile
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('customer.profile') }}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-user text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="username" value="{{ current_user.username }}" disabled>
+                                </div>
+                                <div class="form-text">Username cannot be changed</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-envelope text-muted"></i>
+                                    </span>
+                                    <input type="email" class="form-control" id="email" value="{{ current_user.email }}" disabled>
+                                </div>
+                                <div class="form-text">Email cannot be changed</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-phone text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control" id="phone" name="phone" value="{{ current_user.phone or '' }}" placeholder="Enter your phone number">
+                            </div>
+                            <div class="form-text">We'll use this number for ride-related communications</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="home_address" class="form-label">Home Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-home text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control" id="home_address" name="home_address" value="{{ profile.home_address or '' }}" placeholder="Enter your home address">
+                            </div>
+                            <div class="form-text">Set this for faster ride booking to home</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="work_address" class="form-label">Work Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-building text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control" id="work_address" name="work_address" value="{{ profile.work_address or '' }}" placeholder="Enter your work address">
+                            </div>
+                            <div class="form-text">Set this for faster ride booking to work</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shield-alt me-2 text-danger"></i>
+                        Account Security
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-box me-3 bg-danger bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-lock text-danger fa-2x"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1">Password Management</h5>
+                                <p class="text-muted mb-0">Update your password or manage account security settings.</p>
+                            </div>
+                        </div>
+                        <div class="alert alert-info">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-info-circle fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="alert-heading">Password Safety Tips</h5>
+                                    <p class="mb-0">For security reasons, we recommend changing your password regularly and using a strong combination of letters, numbers, and special characters.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="#" class="btn btn-outline-danger">
+                            <i class="fas fa-key me-2"></i> Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .icon-box {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .profile-img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+    }
+</style>
+{% endblock %} 

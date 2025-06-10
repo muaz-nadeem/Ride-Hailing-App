@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Vehicle Maintenance</h1>
+            <div>
+                <a href="{{ url_for('admin.vehicle_details', vehicle_id=vehicle.id) }}" class="btn btn-info text-white me-2">
+                    <i class="fas fa-eye me-2"></i> View Vehicle
+                </a>
+                <a href="{{ url_for('admin.vehicles') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Vehicles
+                </a>
+            </div>
+        </div>
+        
+        <!-- Vehicle Summary Card -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2 text-center mb-3 mb-md-0">
+                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <i class="fas fa-car fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-10">
+                        <h5>{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p><strong>License Plate:</strong> {{ vehicle.license_plate }}</p>
+                                <p><strong>Color:</strong> {{ vehicle.color }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Type:</strong> {{ vehicle.vehicle_type }}</p>
+                                <p><strong>Capacity:</strong> {{ vehicle.capacity }} passengers</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Status:</strong> 
+                                    {% if vehicle.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Add Maintenance Log Form -->
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h4 class="mb-0">Add Maintenance Log</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('admin.vehicle_maintenance', vehicle_id=vehicle.id) }}">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-3">
+                                <label for="maintenance_type" class="form-label">Maintenance Type</label>
+                                {{ form.maintenance_type(class="form-control") }}
+                                {% if form.maintenance_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.maintenance_type.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                {{ form.description(class="form-control", rows=3) }}
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.description.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="cost" class="form-label">Cost ($)</label>
+                                {{ form.cost(class="form-control", placeholder="e.g. 120.00") }}
+                                {% if form.cost.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.cost.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="service_date" class="form-label">Service Date</label>
+                                {{ form.service_date(class="form-control", type="date") }}
+                                {% if form.service_date.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.service_date.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="next_service_date" class="form-label">Next Service Date (Optional)</label>
+                                {{ form.next_service_date(class="form-control", type="date") }}
+                                {% if form.next_service_date.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.next_service_date.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-warning btn-lg") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Maintenance History -->
+            <div class="col-md-7">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Maintenance History</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if maintenance_logs %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th>Cost</th>
+                                            <th>Next Service</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for log in maintenance_logs %}
+                                            <tr>
+                                                <td>{{ log.service_date.strftime('%Y-%m-%d') }}</td>
+                                                <td>{{ log.maintenance_type.replace('_', ' ').title() }}</td>
+                                                <td>{{ log.description }}</td>
+                                                <td>${{ log.cost }}</td>
+                                                <td>
+                                                    {% if log.next_service_date %}
+                                                        {{ log.next_service_date.strftime('%Y-%m-%d') }}
+                                                        {% if log.next_service_date < now %}
+                                                            <span class="badge bg-danger">Overdue</span>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        N/A
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <p>No maintenance logs found for this vehicle.</p>
+                                <p>Use the form to add your first maintenance log.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="text-center mb-5">About Fleet Management</h1>
+                
+                <div class="card mb-5">
+                    <div class="card-body">
+                        <h2 class="mb-3">Our Mission</h2>
+                        <p class="lead">To provide reliable, safe, and convenient transportation services for our customers while creating opportunities for drivers to earn and grow with us.</p>
+                        <p>At Fleet Management, we strive to connect riders with drivers through a seamless platform that prioritizes safety, transparency, and customer satisfaction.</p>
+                    </div>
+                </div>
+                
+                <div class="card mb-5">
+                    <div class="card-body">
+                        <h2 class="mb-3">Our Story</h2>
+                        <p>Fleet Management was founded in 2023 with a vision to revolutionize urban transportation. What started as a small local operation has now grown into a trusted service with thousands of satisfied customers and dedicated drivers.</p>
+                        <p>We believe in continuously improving our platform based on customer feedback and technological advancements to provide the best experience possible.</p>
+                    </div>
+                </div>
+                
+                <div class="card mb-5">
+                    <div class="card-body">
+                        <h2 class="mb-3">Our Values</h2>
+                        <div class="row mt-4">
+                            <div class="col-md-6 mb-4">
+                                <div class="d-flex">
+                                    <div class="me-3 text-primary">
+                                        <i class="fas fa-shield-alt fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h4>Safety</h4>
+                                        <p>We prioritize the safety of both our riders and drivers with thorough verification processes and regular vehicle maintenance.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="d-flex">
+                                    <div class="me-3 text-primary">
+                                        <i class="fas fa-handshake fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h4>Trust</h4>
+                                        <p>Building trust through transparent operations, clear communication, and reliable service.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="d-flex">
+                                    <div class="me-3 text-primary">
+                                        <i class="fas fa-star fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h4>Excellence</h4>
+                                        <p>Continuously striving for excellence in every aspect of our service.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="d-flex">
+                                    <div class="me-3 text-primary">
+                                        <i class="fas fa-users fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h4>Community</h4>
+                                        <p>Creating a positive impact on the communities we serve and fostering a supportive environment.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="mb-3">Join Our Journey</h2>
+                        <p>Whether you're looking for a reliable ride or an opportunity to earn as a driver, we welcome you to be a part of our growing community.</p>
+                        <div class="text-center mt-4">
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-primary me-3">Sign Up as Customer</a>
+                            <a href="{{ url_for('auth.register_rider') }}" class="btn btn-outline-primary">Become a Driver</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

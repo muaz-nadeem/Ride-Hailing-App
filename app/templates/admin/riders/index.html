@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<style>
+    /* Fix modal disappearing issues */
+    .modal {
+        z-index: 1050 !important;
+    }
+    
+    .modal-backdrop {
+        z-index: 1040 !important;
+    }
+    
+    .modal-dialog {
+        z-index: 1060 !important;
+        margin: 1.75rem auto;
+    }
+    
+    .modal-content {
+        box-shadow: 0 5px 15px rgba(0,0,0,.5);
+    }
+    
+    /* Ensure select dropdowns appear above other elements */
+    .form-select {
+        position: relative;
+        z-index: 1070 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Drivers Management</h1>
+        </div>
+        
+        <!-- Filter Controls -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="filterStatus" id="filterAll" value="all" checked>
+                            <label class="form-check-label" for="filterAll">All Drivers</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="filterStatus" id="filterPending" value="pending">
+                            <label class="form-check-label" for="filterPending">Pending Approval</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="filterStatus" id="filterApproved" value="approved">
+                            <label class="form-check-label" for="filterApproved">Approved</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="searchRiders" placeholder="Search drivers...">
+                            <button class="btn btn-outline-secondary" type="button">Search</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% set pending_count = riders|selectattr('rider_profile', 'defined')|selectattr('rider_profile.approved', 'defined')|selectattr('rider_profile.approved', 'equalto', false)|list|length %}
+        
+        {% if pending_count > 0 %}
+            <div class="alert alert-warning">
+                <h5><i class="fas fa-exclamation-triangle me-2"></i> Pending Applications</h5>
+                <p>There are {{ pending_count }} driver application(s) waiting for approval.</p>
+            </div>
+        {% endif %}
+        
+        <!-- Riders Table -->
+        <div class="card">
+            <div class="card-body">
+                {% if riders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>License</th>
+                                    <th>Status</th>
+                                    <th>Rating</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rider in riders %}
+                                    <tr class="rider-row {% if rider.rider_profile and not rider.rider_profile.approved %}pending{% endif %}">
+                                        <td>{{ rider.id }}</td>
+                                        <td>{{ rider.username }}</td>
+                                        <td>{{ rider.email }}</td>
+                                        <td>
+                                            {% if rider.rider_profile and rider.rider_profile.license_number %}
+                                                {{ rider.rider_profile.license_number }}
+                                            {% else %}
+                                                <span class="text-muted">Not provided</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if rider.rider_profile %}
+                                                {% if rider.rider_profile.approved %}
+                                                    <span class="badge bg-success">Approved</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-danger">Incomplete</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if rider.rider_profile and rider.rider_profile.rating %}
+                                                <span class="rating {% if rider.rider_profile.rating < 3.5 %}low{% endif %}">
+                                                    {% for i in range(5) %}
+                                                        {% if i < rider.rider_profile.rating|int %}
+                                                            <i class="fas fa-star"></i>
+                                                        {% elif i < rider.rider_profile.rating %}
+                                                            <i class="fas fa-star-half-alt"></i>
+                                                        {% else %}
+                                                            <i class="far fa-star"></i>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    {{ rider.rider_profile.rating }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">Not rated</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('admin.rider_details', rider_id=rider.id) }}" class="btn btn-sm btn-info text-white">
+                                                View
+                                            </a>
+                                            {% if rider.rider_profile and not rider.rider_profile.approved %}
+                                                <a href="{{ url_for('admin.approve_rider_form', rider_id=rider.id) }}" class="btn btn-sm btn-success">
+                                                    Approve
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ rider.id }}">
+                                                    Reject
+                                                </button>
+                                                
+                                                <!-- Reject Modal -->
+                                                <div class="modal fade" id="rejectModal{{ rider.id }}" tabindex="-1" aria-labelledby="rejectModalLabel{{ rider.id }}" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="rejectModalLabel{{ rider.id }}">Reject Driver Application</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <form action="{{ url_for('admin.reject_rider', rider_id=rider.id) }}" method="post">
+                                                                <div class="modal-body">
+                                                                    <p>Are you sure you want to reject the application from {{ rider.username }}?</p>
+                                                                    <p class="text-danger">This action cannot be undone.</p>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                    <button type="submit" class="btn btn-danger">Reject Application</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>No drivers found.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fix modal disappearing issue
+            const approveModals = document.querySelectorAll('[id^="approveModal"]');
+            const rejectModals = document.querySelectorAll('[id^="rejectModal"]');
+            
+            // Prevent modal from closing when clicking inside it
+            approveModals.forEach(function(modal) {
+                modal.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        event.stopPropagation();
+                    }
+                });
+                
+                const modalDialog = modal.querySelector('.modal-dialog');
+                if (modalDialog) {
+                    modalDialog.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                    });
+                }
+            });
+            
+            rejectModals.forEach(function(modal) {
+                modal.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        event.stopPropagation();
+                    }
+                });
+                
+                const modalDialog = modal.querySelector('.modal-dialog');
+                if (modalDialog) {
+                    modalDialog.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                    });
+                }
+            });
+            
+            // Filter functionality
+            const radioButtons = document.querySelectorAll('input[name="filterStatus"]');
+            const riderRows = document.querySelectorAll('.rider-row');
+            
+            radioButtons.forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    const filterValue = this.value;
+                    
+                    riderRows.forEach(function(row) {
+                        if (filterValue === 'all') {
+                            row.style.display = '';
+                        } else if (filterValue === 'pending') {
+                            if (row.classList.contains('pending')) {
+                                row.style.display = '';
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        } else if (filterValue === 'approved') {
+                            if (!row.classList.contains('pending')) {
+                                row.style.display = '';
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Search functionality
+            const searchInput = document.getElementById('searchRiders');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                
+                riderRows.forEach(function(row) {
+                    const text = row.textContent.toLowerCase();
+                    
+                    if (text.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %} 

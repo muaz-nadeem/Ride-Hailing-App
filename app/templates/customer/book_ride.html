@@ -1,0 +1,436 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container py-4">
+        <h1 class="mb-4">Book a Ride</h1>
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Ride Details</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('customer.book_ride') }}" id="bookRideForm">
+                            {{ form.hidden_tag() }}
+
+                            <div class="mb-3">
+                                <label for="pickup_address" class="form-label">Pickup Location</label>
+                                <div class="input-group">
+                                    {{ form.pickup_address(class="form-control", placeholder="Enter pickup address", id="pickupAddress") }}
+                                    <button type="button" class="btn btn-outline-secondary" id="pickupCurrentLocation">
+                                        <i class="fas fa-map-marker-alt"></i> Current
+                                    </button>
+                                </div>
+                                <input type="hidden" name="pickup_latitude" id="pickupLatitude">
+                                <input type="hidden" name="pickup_longitude" id="pickupLongitude">
+                                {% if form.pickup_address.errors or form.pickup_latitude.errors or form.pickup_longitude.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.pickup_address.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                        {% for error in form.pickup_latitude.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                        {% for error in form.pickup_longitude.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div id="pickupCoordinatesDebug" class="small text-muted mt-1"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="destination_address" class="form-label">Destination</label>
+                                {{ form.destination_address(class="form-control", placeholder="Enter destination address", id="destinationAddress") }}
+                                <input type="hidden" name="destination_latitude" id="destinationLatitude">
+                                <input type="hidden" name="destination_longitude" id="destinationLongitude">
+                                {% if form.destination_address.errors or form.destination_latitude.errors or form.destination_longitude.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.destination_address.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                        {% for error in form.destination_latitude.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                        {% for error in form.destination_longitude.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div id="destinationCoordinatesDebug" class="small text-muted mt-1"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="vehicle_type" class="form-label">Vehicle Type</label>
+                                {{ form.vehicle_type(class="form-control") }}
+                                {% if form.vehicle_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.vehicle_type.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                <!-- Vehicle Preview Section -->
+                                <div id="vehiclePreview" class="card mt-2" style="display: none;">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-2 text-muted">Selected Vehicle</h6>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <i class="fas fa-car fa-2x text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0" id="vehicleModel"></h6>
+                                                <p class="mb-0 text-muted" id="vehicleDetails"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 form-check">
+                                {{ form.is_scheduled(class="form-check-input", id="scheduleRide") }}
+                                <label class="form-check-label" for="is_scheduled">Schedule for Later</label>
+                            </div>
+
+                            <div class="mb-3" id="scheduledTimeDiv" style="display: none;">
+                                <label for="scheduled_time" class="form-label">Scheduled Time</label>
+                                {{ form.scheduled_time(class="form-control", type="datetime-local") }}
+                                {% if form.scheduled_time.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.scheduled_time.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Fare Estimate</h5>
+                                    <div id="fareDetails">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Distance:</span>
+                                            <span id="rideDistance">-- km</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Estimated Time:</span>
+                                            <span id="rideTime">-- min</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <span class="text-muted">Estimated Fare:</span>
+                                            <strong id="rideFare">PKR --</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-primary btn-lg") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Map</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="map" class="w-100" style="height: 500px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map
+            const map = initMap('map');
+            let pickupMarker = null;
+            let destinationMarker = null;
+            let routeLine = null;
+
+            // Debug elements
+            const pickupCoordinatesDebug = document.getElementById('pickupCoordinatesDebug');
+            const destinationCoordinatesDebug = document.getElementById('destinationCoordinatesDebug');
+
+            // Show scheduled time field if checkbox is checked
+            const scheduleRideCheckbox = document.getElementById('scheduleRide');
+            const scheduledTimeDiv = document.getElementById('scheduledTimeDiv');
+
+            scheduleRideCheckbox.addEventListener('change', function() {
+                scheduledTimeDiv.style.display = this.checked ? 'block' : 'none';
+            });
+
+            // Set current location as pickup
+            document.getElementById('pickupCurrentLocation').addEventListener('click', function() {
+                getCurrentLocation(function(latlng) {
+                    if (latlng) {
+                        setPickupLocation(latlng[0], latlng[1]);
+
+                        // Reverse geocode to get address
+                        reverseGeocode(latlng[0], latlng[1], function(address) {
+                            if (address) {
+                                document.getElementById('pickupAddress').value = address;
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Search pickup address when input changes
+            let pickupTimeout = null;
+            document.getElementById('pickupAddress').addEventListener('input', function() {
+                clearTimeout(pickupTimeout);
+                pickupTimeout = setTimeout(function() {
+                    const address = document.getElementById('pickupAddress').value;
+                    if (address.length > 3) {
+                        searchAddress(address, function(result) {
+                            if (result) {
+                                setPickupLocation(result.lat, result.lng);
+                            }
+                        });
+                    }
+                }, 500);
+            });
+
+            // Search destination address when input changes
+            let destinationTimeout = null;
+            document.getElementById('destinationAddress').addEventListener('input', function() {
+                clearTimeout(destinationTimeout);
+                destinationTimeout = setTimeout(function() {
+                    const address = document.getElementById('destinationAddress').value;
+                    if (address.length > 3) {
+                        searchAddress(address, function(result) {
+                            if (result) {
+                                setDestinationLocation(result.lat, result.lng);
+                            }
+                        });
+                    }
+                }, 500);
+            });
+
+            // Update vehicle type change for fare calculation and vehicle preview
+            document.getElementById('vehicle_type').addEventListener('change', function() {
+                calculateFareEstimate();
+                updateVehiclePreview();
+            });
+
+            // Validate form before submit
+            document.getElementById('bookRideForm').addEventListener('submit', function(event) {
+                const pickupLat = document.getElementById('pickupLatitude').value;
+                const pickupLng = document.getElementById('pickupLongitude').value;
+                const destLat = document.getElementById('destinationLatitude').value;
+                const destLng = document.getElementById('destinationLongitude').value;
+
+                console.log("Form submission - Pickup coordinates:", pickupLat, pickupLng);
+                console.log("Form submission - Destination coordinates:", destLat, destLng);
+                console.log("Form submission - Vehicle type:", document.getElementById('vehicle_type').value);
+
+                // Ensure coordinates are set
+                if (!pickupLat || !pickupLng || pickupLat === "None" || pickupLng === "None") {
+                    event.preventDefault();
+                    alert('Please set pickup location on the map');
+                    return false;
+                }
+
+                if (!destLat || !destLng || destLat === "None" || destLng === "None") {
+                    event.preventDefault();
+                    alert('Please set destination location on the map');
+                    return false;
+                }
+
+                // Ensure vehicle type is selected
+                const vehicleType = document.getElementById('vehicle_type').value;
+                if (!vehicleType) {
+                    event.preventDefault();
+                    alert('Please select a vehicle type');
+                    return false;
+                }
+
+                // If scheduled, ensure time is set
+                if (scheduleRideCheckbox.checked) {
+                    const scheduledTime = document.getElementById('scheduled_time').value;
+                    if (!scheduledTime) {
+                        event.preventDefault();
+                        alert('Please set a scheduled time for your ride');
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            // Function to set pickup location
+            function setPickupLocation(lat, lng) {
+                console.log("Setting pickup location:", lat, lng);
+
+                // Set hidden field values
+                document.getElementById('pickupLatitude').value = lat;
+                document.getElementById('pickupLongitude').value = lng;
+
+                // Update debug info
+                pickupCoordinatesDebug.textContent = `Coordinates set: ${lat}, ${lng}`;
+
+                if (pickupMarker) {
+                    map.removeLayer(pickupMarker);
+                }
+
+                // Use default marker if custom icon is not available
+                try {
+                    pickupMarker = addMarker(map, [lat, lng], 'Pickup Location', customerIcon);
+                } catch (e) {
+                    console.error("Error using custom icon:", e);
+                    pickupMarker = L.marker([lat, lng]).addTo(map).bindPopup('Pickup Location');
+                }
+
+                // Center map on pickup location
+                map.setView([lat, lng], 13);
+
+                // If destination is set, draw route and calculate fare
+                if (document.getElementById('destinationLatitude').value) {
+                    drawRouteAndCalculateFare();
+                }
+            }
+
+            // Function to set destination location
+            function setDestinationLocation(lat, lng) {
+                console.log("Setting destination location:", lat, lng);
+
+                // Set hidden field values
+                document.getElementById('destinationLatitude').value = lat;
+                document.getElementById('destinationLongitude').value = lng;
+
+                // Update debug info
+                destinationCoordinatesDebug.textContent = `Coordinates set: ${lat}, ${lng}`;
+
+                if (destinationMarker) {
+                    map.removeLayer(destinationMarker);
+                }
+
+                // Use default marker if custom icon is not available
+                try {
+                    destinationMarker = addMarker(map, [lat, lng], 'Destination', destinationIcon);
+                } catch (e) {
+                    console.error("Error using custom icon:", e);
+                    destinationMarker = L.marker([lat, lng]).addTo(map).bindPopup('Destination');
+                }
+
+                // If pickup is set, draw route and calculate fare
+                if (document.getElementById('pickupLatitude').value) {
+                    drawRouteAndCalculateFare();
+                }
+            }
+
+            // Function to draw route and calculate fare
+            function drawRouteAndCalculateFare() {
+                const pickupLat = parseFloat(document.getElementById('pickupLatitude').value);
+                const pickupLng = parseFloat(document.getElementById('pickupLongitude').value);
+                const destLat = parseFloat(document.getElementById('destinationLatitude').value);
+                const destLng = parseFloat(document.getElementById('destinationLongitude').value);
+
+                if (pickupLat && pickupLng && destLat && destLng) {
+                    // Remove existing route line
+                    if (routeLine) {
+                        map.removeLayer(routeLine);
+                    }
+
+                    // Draw route
+                    routeLine = drawRoute(map, [pickupLat, pickupLng], [destLat, destLng]);
+
+                    // Calculate fare
+                    calculateFareEstimate();
+                }
+            }
+
+            // Function to calculate fare estimate
+            function calculateFareEstimate() {
+                const pickupLat = parseFloat(document.getElementById('pickupLatitude').value);
+                const pickupLng = parseFloat(document.getElementById('pickupLongitude').value);
+                const destLat = parseFloat(document.getElementById('destinationLatitude').value);
+                const destLng = parseFloat(document.getElementById('destinationLongitude').value);
+                const vehicleType = document.getElementById('vehicle_type').value;
+
+                if (pickupLat && pickupLng && destLat && destLng && vehicleType) {
+                    calculateFare(vehicleType, pickupLat, pickupLng, destLat, destLng)
+                        .then(data => {
+                            document.getElementById('rideDistance').textContent = data.distance + ' km';
+                            document.getElementById('rideTime').textContent = data.estimated_time + ' min';
+                            updateFareEstimate(data);
+                        });
+                }
+            }
+
+            // Function to update vehicle preview
+            function updateVehiclePreview() {
+                const vehicleSelect = document.getElementById('vehicle_type');
+                const vehiclePreview = document.getElementById('vehiclePreview');
+                const vehicleModel = document.getElementById('vehicleModel');
+                const vehicleDetails = document.getElementById('vehicleDetails');
+
+                if (vehicleSelect.value) {
+                    // Get the selected option text which contains vehicle info
+                    const selectedOption = vehicleSelect.options[vehicleSelect.selectedIndex];
+                    const vehicleText = selectedOption.text;
+
+                    // Parse vehicle information from the text (format: "Make Model (Type - Color)")
+                    const match = vehicleText.match(/(.*) \((.*) - (.*)\)/);
+
+                    if (match && match.length >= 4) {
+                        const makeModel = match[1].trim();
+                        const type = match[2].trim();
+                        const color = match[3].trim();
+
+                        // Update the preview
+                        vehicleModel.textContent = makeModel;
+                        vehicleDetails.textContent = `${type} • ${color}`;
+                        vehiclePreview.style.display = 'block';
+                    }
+                } else {
+                    vehiclePreview.style.display = 'none';
+                }
+            }
+
+            function updateFareEstimate(data) {
+                if (data && data.estimated_fare) {
+                    document.getElementById('rideFare').textContent = 'PKR ' + data.estimated_fare;
+                    document.getElementById('estimated_fare').value = data.estimated_fare;
+                }
+            }
+
+            // Try to get current location on page load
+            getCurrentLocation(function(latlng) {
+                if (latlng) {
+                    map.setView(latlng, 13);
+                }
+            });
+        });
+
+        async function estimateRide() {
+            // ... existing code ...
+            
+            const response = await fetch('/api/estimate_ride', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            if (response.ok) {
+                response.json().then(data => {
+                    document.getElementById('rideDistance').textContent = data.distance + ' km';
+                    document.getElementById('rideTime').textContent = data.estimated_time + ' min';
+                    updateFareEstimate(data);
+                });
+            }
+        }
+    </script>
+{% endblock %}

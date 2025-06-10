@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-clock fa-4x text-warning"></i>
+                    </div>
+                    <h1 class="mb-3">Application Pending Approval</h1>
+                    <p class="lead mb-4">
+                        Thank you for applying to be a driver with our fleet service. Your application is currently under review by our team.
+                    </p>
+                    <div class="alert alert-info">
+                        <p class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            This process typically takes 1-2 business days. You'll receive an email notification once your application has been reviewed.
+                        </p>
+                    </div>
+                    <hr class="my-4">
+                    <div class="text-start">
+                        <h5>While you wait:</h5>
+                        <ul class="list-group list-group-flush mb-4">
+                            <li class="list-group-item bg-transparent">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Make sure your vehicle information is up to date
+                            </li>
+                            <li class="list-group-item bg-transparent">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Verify your contact information is correct
+                            </li>
+                            <li class="list-group-item bg-transparent">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Review our driver guidelines and policies
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="mt-4">
+                        <a href="{{ url_for('rider.profile') }}" class="btn btn-primary">
+                            <i class="fas fa-user me-2"></i> View My Profile
+                        </a>
+                        <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-home me-2"></i> Return to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

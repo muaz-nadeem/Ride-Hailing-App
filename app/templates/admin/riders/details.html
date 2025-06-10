@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Driver Details</h1>
+            <a href="{{ url_for('admin.riders') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Drivers
+            </a>
+        </div>
+        
+        <!-- Driver Info Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">Driver Information</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3 mb-md-0">
+                        <img src="https://via.placeholder.com/150" alt="{{ rider.username }}" class="img-fluid rounded-circle mb-3" style="max-width: 150px;">
+                        <h5>{{ rider.username }}</h5>
+                        <p class="mb-1">
+                            {% if profile and profile.approved %}
+                                <span class="badge bg-success">Approved</span>
+                            {% else %}
+                                <span class="badge bg-warning">Pending Approval</span>
+                            {% endif %}
+                        </p>
+                        {% if profile %}
+                            <p class="mb-0">
+                                <span class="rating {% if profile.rating < 3.5 %}low{% endif %}">
+                                    {% for i in range(5) %}
+                                        {% if i < profile.rating|int %}
+                                            <i class="fas fa-star"></i>
+                                        {% elif i < profile.rating %}
+                                            <i class="fas fa-star-half-alt"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ profile.rating }}
+                                </span>
+                            </p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-9">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h6>Email</h6>
+                                <p>{{ rider.email }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Phone</h6>
+                                <p>{{ rider.phone or 'Not provided' }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h6>Driver License</h6>
+                                <p>{{ profile.license_number if profile else 'Not provided' }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Account Created</h6>
+                                <p>{{ rider.created_at.strftime('%Y-%m-%d') }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h6>Last Seen</h6>
+                                <p>{{ rider.last_seen.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-muted mb-1">Total Earnings</h6>
+                                <p>PKR {{ profile.total_earnings if profile else '0.00' }}</p>
+                            </div>
+                        </div>
+
+                        {% if profile and not profile.approved %}
+                            <div class="card bg-light mt-3">
+                                <div class="card-body">
+                                    <h5>Approval Actions</h5>
+                                    <form action="{{ url_for('admin.approve_rider', rider_id=rider.id) }}" method="post" class="mb-2">
+                                        <div class="mb-3">
+                                            <label for="vehicle_id" class="form-label">Assign Vehicle</label>
+                                            <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+                                                <option value="">Select a vehicle</option>
+                                                {% for vehicle in vehicles %}
+                                                    <option value="{{ vehicle.id }}">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.license_plate }})</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-check me-2"></i> Approve Driver
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('admin.reject_rider', rider_id=rider.id) }}" method="post">
+                                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to reject this driver application? This action cannot be undone.')">
+                                            <i class="fas fa-times me-2"></i> Reject Application
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Assigned Vehicle Card -->
+        {% if vehicle %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Assigned Vehicle</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 text-center mb-3 mb-md-0">
+                            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="fas fa-car fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-10">
+                            <h5>{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><strong>License Plate:</strong> {{ vehicle.license_plate }}</p>
+                                    <p><strong>Color:</strong> {{ vehicle.color }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Type:</strong> {{ vehicle.vehicle_type }}</p>
+                                    <p><strong>Capacity:</strong> {{ vehicle.capacity }} passengers</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Status:</strong> 
+                                        {% if vehicle.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </p>
+                                    <a href="{{ url_for('admin.vehicle_details', vehicle_id=vehicle.id) }}" class="btn btn-sm btn-outline-primary">
+                                        View Vehicle Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Recent Rides Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">Recent Rides</h4>
+            </div>
+            <div class="card-body">
+                {% if recent_rides %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Status</th>
+                                    <th>Fare</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ride in recent_rides %}
+                                    <tr>
+                                        <td>{{ ride.created_at.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ ride.customer.username }}</td>
+                                        <td>{{ ride.pickup_address }}</td>
+                                        <td>{{ ride.destination_address }}</td>
+                                        <td>
+                                            <span class="badge {{ ride.status }}">
+                                                {{ ride.status.replace('_', ' ').title() }}
+                                            </span>
+                                        </td>
+                                        <td>PKR {{ ride.final_fare or ride.estimated_fare }}</td>
+                                        <td>
+                                            <a href="{{ url_for('admin.ride_details', ride_id=ride.id) }}" class="btn btn-sm btn-info text-white">
+                                                View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>No rides found for this driver.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Reviews Card -->
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Customer Reviews</h4>
+            </div>
+            <div class="card-body">
+                {% if reviews %}
+                    <div class="row">
+                        {% for review in reviews %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div>
+                                                <span class="rating {% if review.rating < 3 %}low{% endif %}">
+                                                    {% for i in range(review.rating) %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% endfor %}
+                                                    {% for i in range(5 - review.rating) %}
+                                                        <i class="far fa-star"></i>
+                                                    {% endfor %}
+                                                </span>
+                                            </div>
+                                            <small class="text-muted">{{ review.created_at.strftime('%Y-%m-%d') }}</small>
+                                        </div>
+                                        {% if review.comment %}
+                                            <p class="mb-1">{{ review.comment }}</p>
+                                        {% else %}
+                                            <p class="text-muted mb-1">No comment provided</p>
+                                        {% endif %}
+                                        <small class="text-muted">From: {{ review.customer.username }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>No reviews found for this driver.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %} 

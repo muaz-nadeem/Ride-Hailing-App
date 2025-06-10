@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Make Payment</h1>
+        <a href="{{ url_for('customer.ride_details', ride_id=ride.id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Ride Details
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Ride Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <h5 class="mb-1">Pickup</h5>
+                            <p class="mb-0">{{ ride.pickup_address }}</p>
+                        </div>
+                        <div class="text-end">
+                            <h5 class="mb-1">Destination</h5>
+                            <p class="mb-0">{{ ride.destination_address }}</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <h5 class="mb-1">Date</h5>
+                            <p class="mb-0">{{ ride.created_at.strftime('%b %d, %Y') }}</p>
+                        </div>
+                        <div class="text-end">
+                            <h5 class="mb-1">Driver</h5>
+                            <p class="mb-0">{{ ride.rider.username }}</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <h5 class="mb-1">Distance</h5>
+                            <p class="mb-0">{{ distance|round(2) }} km</p>
+                        </div>
+                        <div class="text-end">
+                            <h5 class="mb-1">Duration</h5>
+                            <p class="mb-0">{{ duration|round(2) }} min</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="text-center mb-4">
+                        <h5 class="mb-1">Total Amount</h5>
+                        <h3 class="mb-0 text-primary">PKR {{ ride.estimated_fare }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Select Payment Method</h4>
+                </div>
+                <div class="card-body">
+                    {% if payment_methods %}
+                        <form method="POST" action="{{ url_for('customer.make_payment', ride_id=ride.id) }}">
+                            <div class="mb-4">
+                                {% for method in payment_methods %}
+                                    <div class="form-check mb-3 border p-3 rounded {% if method.is_default %}border-primary{% endif %}">
+                                        <input class="form-check-input" type="radio" name="payment_method_id"
+                                               id="payment{{ method.id }}" value="{{ method.id }}"
+                                               {% if method.is_default %}checked{% endif %}>
+                                        <label class="form-check-label d-flex justify-content-between align-items-center" for="payment{{ method.id }}">
+                                            <div>
+                                                {% if method.payment_type == 'credit_card' %}
+                                                    <i class="fas fa-credit-card text-primary me-2"></i> Credit Card
+                                                {% elif method.payment_type == 'debit_card' %}
+                                                    <i class="fas fa-credit-card text-success me-2"></i> Debit Card
+                                                {% elif method.payment_type == 'paypal' %}
+                                                    <i class="fab fa-paypal text-info me-2"></i> PayPal
+                                                {% else %}
+                                                    <i class="fas fa-money-bill text-secondary me-2"></i> {{ method.payment_type|title }}
+                                                {% endif %}
+
+                                                {% if method.card_number %}
+                                                    <span class="text-muted">•••• {{ method.card_number[-4:] }}</span>
+                                                {% endif %}
+
+                                                {% if method.is_default %}
+                                                    <span class="badge bg-primary ms-2">Default</span>
+                                                {% endif %}
+                                            </div>
+
+                                            {% if method.card_expiry %}
+                                                <small class="text-muted">Expires: {{ method.card_expiry }}</small>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-lock me-2"></i> Pay Now
+                                </button>
+                                <a href="{{ url_for('customer.add_payment_method') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-plus me-2"></i> Add New Payment Method
+                                </a>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-credit-card fa-4x text-muted mb-3"></i>
+                            <h4>No Payment Methods</h4>
+                            <p class="text-muted">You need to add a payment method before you can make a payment.</p>
+                            <a href="{{ url_for('customer.add_payment_method') }}" class="btn btn-primary mt-2">
+                                <i class="fas fa-plus me-2"></i> Add Payment Method
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>All Rides</h1>
+            <div>
+                <div class="btn-group">
+                    <a href="{{ url_for('admin.rides', status='all') }}" class="btn btn-outline-primary {{ 'active' if current_status == 'all' }}">All</a>
+                    <a href="{{ url_for('admin.rides', status='pending') }}" class="btn btn-outline-primary {{ 'active' if current_status == 'pending' }}">Pending</a>
+                    <a href="{{ url_for('admin.rides', status='accepted') }}" class="btn btn-outline-primary {{ 'active' if current_status == 'accepted' }}">Accepted</a>
+                    <a href="{{ url_for('admin.rides', status='in_progress') }}" class="btn btn-outline-primary {{ 'active' if current_status == 'in_progress' }}">In Progress</a>
+                    <a href="{{ url_for('admin.rides', status='completed') }}" class="btn btn-outline-primary {{ 'active' if current_status == 'completed' }}">Completed</a>
+                    <a href="{{ url_for('admin.rides', status='cancelled') }}" class="btn btn-outline-primary {{ 'active' if current_status == 'cancelled' }}">Cancelled</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-body">
+                {% if rides %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Customer</th>
+                                    <th>Driver</th>
+                                    <th>Vehicle</th>
+                                    <th>Status</th>
+                                    <th>Created At</th>
+                                    <th>Fare</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ride in rides %}
+                                    <tr>
+                                        <td>{{ ride.id }}</td>
+                                        <td>
+                                            <a href="{{ url_for('admin.customer_details', customer_id=ride.customer.id) }}">
+                                                {{ ride.customer.username }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            {% if ride.rider %}
+                                                <a href="{{ url_for('admin.rider_details', rider_id=ride.rider.id) }}">
+                                                    {{ ride.rider.username }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">Not assigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if ride.vehicle %}
+                                                <a href="{{ url_for('admin.vehicle_details', vehicle_id=ride.vehicle.id) }}">
+                                                    {{ ride.vehicle.make }} {{ ride.vehicle.model }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">None</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge {{ ride.status }}">
+                                                {{ ride.status.replace('_', ' ').title() }}
+                                            </span>
+                                        </td>
+                                        <td>{{ ride.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>PKR {{ ride.final_fare or ride.estimated_fare }}</td>
+                                        <td>
+                                            <a href="{{ url_for('admin.ride_details', ride_id=ride.id) }}" class="btn btn-sm btn-info text-white">View</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="mb-0">No rides found.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %} 

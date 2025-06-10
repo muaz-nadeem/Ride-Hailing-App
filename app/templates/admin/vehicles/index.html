@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Fleet Vehicles</h1>
+            <a href="{{ url_for('admin.add_vehicle') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Add New Vehicle
+            </a>
+        </div>
+        
+        <!-- Filter Controls -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="filterStatus" id="filterAll" value="all" checked>
+                            <label class="form-check-label" for="filterAll">All Vehicles</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="filterStatus" id="filterActive" value="active">
+                            <label class="form-check-label" for="filterActive">Active</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="filterStatus" id="filterInactive" value="inactive">
+                            <label class="form-check-label" for="filterInactive">Inactive</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="searchVehicles" placeholder="Search vehicles...">
+                            <button class="btn btn-outline-secondary" type="button">Search</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Vehicles Grid -->
+        <div class="row">
+            {% if vehicles %}
+                {% for vehicle in vehicles %}
+                    <div class="col-lg-4 col-md-6 mb-4 vehicle-card" 
+                         data-status="{% if vehicle.is_active %}active{% else %}inactive{% endif %}">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ vehicle.make }} {{ vehicle.model }}</h5>
+                                {% if vehicle.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-4 text-center">
+                                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                            <i class="fas fa-car fa-2x text-primary"></i>
+                                        </div>
+                                        <p class="mb-0">{{ vehicle.year }}</p>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <p class="mb-1"><strong>Type:</strong> {{ vehicle.vehicle_type.title() }}</p>
+                                        <p class="mb-1"><strong>License:</strong> {{ vehicle.license_plate }}</p>
+                                        <p class="mb-1"><strong>Color:</strong> {{ vehicle.color }}</p>
+                                        <p class="mb-0"><strong>Capacity:</strong> {{ vehicle.capacity }} passengers</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="mb-0"><strong>Base Fare:</strong> ${{ vehicle.base_fare }}</p>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('admin.vehicle_details', vehicle_id=vehicle.id) }}" class="btn btn-sm btn-info text-white">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin.edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin.vehicle_maintenance', vehicle_id=vehicle.id) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-tools"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-5">
+                    <div class="card">
+                        <div class="card-body py-5">
+                            <h4>No vehicles found</h4>
+                            <p>Get started by adding your first vehicle to the fleet.</p>
+                            <a href="{{ url_for('admin.add_vehicle') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i> Add New Vehicle
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter functionality
+            const radioButtons = document.querySelectorAll('input[name="filterStatus"]');
+            const vehicleCards = document.querySelectorAll('.vehicle-card');
+            
+            radioButtons.forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    const filterValue = this.value;
+                    
+                    vehicleCards.forEach(function(card) {
+                        if (filterValue === 'all') {
+                            card.style.display = '';
+                        } else if (filterValue === card.dataset.status) {
+                            card.style.display = '';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            // Search functionality
+            const searchInput = document.getElementById('searchVehicles');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                
+                vehicleCards.forEach(function(card) {
+                    const text = card.textContent.toLowerCase();
+                    
+                    if (text.includes(searchTerm)) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %} 

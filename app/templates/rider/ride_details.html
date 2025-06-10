@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Ride Details</h1>
+            <a href="{{ url_for('rider.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+            </a>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Ride Information</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h5>Status</h5>
+                            <span class="badge {{ ride.status }}">{{ ride.status.replace('_', ' ').title() }}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h5>Customer</h5>
+                            <p class="mb-1"><strong>Name:</strong> {{ ride.customer.username }}</p>
+                            <p class="mb-1"><strong>Phone:</strong> {{ ride.customer.phone }}</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h5>Pickup</h5>
+                            <p class="mb-0">{{ ride.pickup_address }}</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h5>Destination</h5>
+                            <p class="mb-0">{{ ride.destination_address }}</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h5>Fare</h5>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-money-bill-wave text-success me-2"></i> Fare Details</h6>
+                                <p class="mb-1"><strong>Estimated:</strong> PKR {{ "%.2f"|format(ride.estimated_fare) }}</p>
+                                {% if ride.final_fare %}
+                                    <p class="mb-0"><strong>Final:</strong> PKR {{ "%.2f"|format(ride.final_fare) }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h5>Timestamps</h5>
+                            <p class="mb-1"><strong>Requested:</strong> {{ ride.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            {% if ride.accepted_at %}
+                                <p class="mb-1"><strong>Accepted:</strong> {{ ride.accepted_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            {% endif %}
+                            {% if ride.started_at %}
+                                <p class="mb-1"><strong>Started:</strong> {{ ride.started_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            {% endif %}
+                            {% if ride.completed_at %}
+                                <p class="mb-0"><strong>Completed:</strong> {{ ride.completed_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mt-4">
+                            {% if ride.status == 'requested' %}
+                                <form action="{{ url_for('rider.accept_ride', ride_id=ride.id) }}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check me-2"></i> Accept Ride
+                                    </button>
+                                </form>
+                            {% elif ride.status == 'accepted' %}
+                                <form action="{{ url_for('rider.start_ride', ride_id=ride.id) }}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-play me-2"></i> Start Ride
+                                    </button>
+                                </form>
+                            {% elif ride.status == 'in_progress' %}
+                                <form action="{{ url_for('rider.complete_ride', ride_id=ride.id) }}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check-circle me-2"></i> Complete Ride
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                {% if ride.review %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4 class="mb-0">Customer Review</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h5>Rating</h5>
+                                <div class="rating {% if ride.review.rating < 3.5 %}low{% endif %}">
+                                    {% for i in range(ride.review.rating) %}
+                                        <i class="fas fa-star"></i>
+                                    {% endfor %}
+                                    {% for i in range(5 - ride.review.rating) %}
+                                        <i class="far fa-star"></i>
+                                    {% endfor %}
+                                    {{ ride.review.rating }}/5
+                                </div>
+                            </div>
+                            
+                            {% if ride.review.comment %}
+                                <div class="mb-0">
+                                    <h5>Comment</h5>
+                                    <p class="mb-0">{{ ride.review.comment }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Route Map</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="rideMap" class="w-100" style="height: 400px;"></div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Navigation</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>Use the map above to navigate to the pickup location and destination.</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ ride.pickup_latitude }},{{ ride.pickup_longitude }}" 
+                                   class="btn btn-outline-primary w-100 mb-2 mb-md-0" target="_blank">
+                                    <i class="fas fa-map-marker-alt me-2"></i> Navigate to Pickup
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ ride.destination_latitude }},{{ ride.destination_longitude }}" 
+                                   class="btn btn-outline-primary w-100" target="_blank">
+                                    <i class="fas fa-route me-2"></i> Navigate to Destination
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map
+            const map = initMap('rideMap');
+            
+            // Add pickup and destination markers
+            const pickupLatLng = [{{ ride.pickup_latitude }}, {{ ride.pickup_longitude }}];
+            const destLatLng = [{{ ride.destination_latitude }}, {{ ride.destination_longitude }}];
+            
+            // Use try-catch to handle missing icon files
+            try {
+                addMarker(map, pickupLatLng, 'Pickup: {{ ride.pickup_address }}', customerIcon);
+            } catch (e) {
+                L.marker(pickupLatLng).addTo(map).bindPopup('Pickup: {{ ride.pickup_address }}');
+            }
+            
+            try {
+                addMarker(map, destLatLng, 'Destination: {{ ride.destination_address }}', destinationIcon);
+            } catch (e) {
+                L.marker(destLatLng).addTo(map).bindPopup('Destination: {{ ride.destination_address }}');
+            }
+            
+            // Draw route
+            drawRoute(map, pickupLatLng, destLatLng);
+            
+            // Add rider's current location if available
+            {% if rider_profile and rider_profile.current_latitude and rider_profile.current_longitude %}
+                const riderLatLng = [{{ rider_profile.current_latitude }}, {{ rider_profile.current_longitude }}];
+                try {
+                    addMarker(map, riderLatLng, 'Your location', riderIcon);
+                } catch (e) {
+                    L.marker(riderLatLng).addTo(map).bindPopup('Your location');
+                }
+            {% endif %}
+            
+            // Update location periodically if ride is in progress
+            {% if ride.status == 'in_progress' %}
+                // Get location every 30 seconds and update
+                const locationUpdateInterval = setInterval(function() {
+                    getCurrentLocation(function(latlng) {
+                        if (latlng) {
+                            updateRiderLocation(latlng[0], latlng[1]);
+                        }
+                    });
+                }, 30000);
+                
+                // Initial location update
+                getCurrentLocation(function(latlng) {
+                    if (latlng) {
+                        updateRiderLocation(latlng[0], latlng[1]);
+                    }
+                });
+            {% endif %}
+        });
+    </script>
+{% endblock %}

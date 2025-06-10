@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Analytics</h1>
+    </div>
+    
+    <!-- Revenue Overview -->
+    <div class="card shadow mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">Revenue Overview</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <div class="stats-card bg-light p-4 text-center h-100">
+                        <h5 class="mb-3">Total Revenue</h5>
+                        <h2 class="text-success">PKR {{ total_revenue }}</h2>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <h5>Revenue Trend (Last 30 Days)</h5>
+                    <canvas id="revenueChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ride Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4 mb-md-0">
+            <div class="card shadow h-100">
+                <div class="card-header">
+                    <h4 class="mb-0">Ride Status Distribution</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="rideStatusChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow h-100">
+                <div class="card-header">
+                    <h4 class="mb-0">Top Performing Drivers</h4>
+                </div>
+                <div class="card-body">
+                    {% if top_riders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Driver</th>
+                                        <th>Rides</th>
+                                        <th>Earnings</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for rider in top_riders %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ url_for('admin.rider_details', rider_id=rider.id) }}">{{ rider.username }}</a>
+                                            </td>
+                                            <td>{{ rider.ride_count }}</td>
+                                            <td>PKR {{ rider.earnings }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="mb-0">No data available.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Revenue chart
+        var revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        var revenueChart = new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: {{ revenue_dates|tojson }},
+                datasets: [{
+                    label: 'Revenue (PKR)',
+                    data: {{ revenue_values|tojson }},
+                    backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                    borderColor: '#28a745',
+                    borderWidth: 2,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'PKR ' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Ride status chart
+        var statusCtx = document.getElementById('rideStatusChart').getContext('2d');
+        var statusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ status_labels|tojson }},
+                datasets: [{
+                    data: {{ status_values|tojson }},
+                    backgroundColor: [
+                        '#28a745', // completed
+                        '#ffc107', // pending
+                        '#17a2b8', // accepted
+                        '#007bff', // in_progress
+                        '#dc3545'  // cancelled
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .stats-card {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endblock %} 

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white text-center py-3">
+                        <h3>Login</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" action="">
+                            {{ form.hidden_tag() }}
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                {% if form.email.errors %}
+                                    {{ form.email(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.email.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.email(class="form-control") }}
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    {% if form.password.errors %}
+                                        {{ form.password(class="form-control is-invalid") }}
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="fa fa-eye" aria-hidden="true"></i>
+                                        </button>
+                                        <div class="invalid-feedback">
+                                            {% for error in form.password.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.password(class="form-control") }}
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="fa fa-eye" aria-hidden="true"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                {{ form.remember(class="form-check-input") }}
+                                <label class="form-check-label" for="remember">Remember Me</label>
+                            </div>
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-primary btn-lg") }}
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer text-center py-3">
+                        <div class="mb-2">Don't have an account?</div>
+                        <div class="row">
+                            <div class="col">
+                                <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-sm w-100">Register as Customer</a>
+                            </div>
+                            <div class="col">
+                                <a href="{{ url_for('auth.register_rider') }}" class="btn btn-outline-secondary btn-sm w-100">Register as Driver</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordField = document.querySelector('input[name="password"]');
+        
+        togglePassword.addEventListener('click', function() {
+            // Toggle password visibility
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+            
+            // Toggle icon
+            const eyeIcon = this.querySelector('i');
+            eyeIcon.classList.toggle('fa-eye');
+            eyeIcon.classList.toggle('fa-eye-slash');
+        });
+    });
+</script>
+{% endblock %} 

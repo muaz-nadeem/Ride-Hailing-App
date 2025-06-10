@@ -1,0 +1,50 @@
+{% if pending_rides %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Requested</th>
+                    <th>Est. Fare</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ride in pending_rides %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="ms-3">
+                                    <h6 class="mb-0">{{ ride.customer.username }}</h6>
+                                    <small class="text-muted">{{ ride.customer.phone }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ ride.pickup_address[:20] + '...' if ride.pickup_address|length > 20 else ride.pickup_address }}</td>
+                        <td>{{ ride.destination_address[:20] + '...' if ride.destination_address|length > 20 else ride.destination_address }}</td>
+                        <td>{{ ride.created_at.strftime('%H:%M %b %d') }}</td>
+                        <td>PKR {{ "%.2f"|format(ride.estimated_fare) }}</td>
+                        <td>
+                            <a href="{{ url_for('rider.ride_details', ride_id=ride.id) }}" class="btn btn-sm btn-info text-white mb-1">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <form method="POST" action="{{ url_for('rider.accept_ride', ride_id=ride.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="fas fa-check"></i> Accept
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-car-side fa-4x text-muted mb-3"></i>
+        <h4>No Pending Rides</h4>
+        <p class="text-muted">There are no pending ride requests at this moment.</p>
+    </div>
+{% endif %} 

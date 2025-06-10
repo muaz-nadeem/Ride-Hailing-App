@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Review Your Ride</h1>
+        <a href="{{ url_for('customer.ride_details', ride_id=ride.id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Ride Details
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Rate Your Experience</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <img src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Driver" class="rounded-circle" style="width: 60px; height: 60px;">
+                            </div>
+                            <div>
+                                <h5 class="mb-0">{{ ride.rider.username }}</h5>
+                                <p class="mb-0 text-muted">
+                                    {% if ride.vehicle %}
+                                        {{ ride.vehicle.color }} {{ ride.vehicle.make }} {{ ride.vehicle.model }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-1">
+                            <div>
+                                <i class="fas fa-map-marker-alt text-danger me-2"></i> {{ ride.pickup_address|truncate(30) }}
+                            </div>
+                            <div>
+                                <i class="fas fa-calendar me-2"></i> {{ ride.created_at.strftime('%b %d, %Y') }}
+                            </div>
+                        </div>
+                        <div>
+                            <i class="fas fa-map-marker-alt text-success me-2"></i> {{ ride.destination_address|truncate(30) }}
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('customer.add_review', ride_id=ride.id) }}">
+                        {{ form.hidden_tag() }}
+
+                        <div class="mb-3">
+                            <label for="rating" class="form-label">Rating</label>
+                            <div class="star-rating">
+                                <div class="rating-group">
+                                    {% for choice in form.rating %}
+                                        <div class="form-check form-check-inline">
+                                            {{ choice(class="form-check-input rating__input") }}
+                                            <label class="form-check-label rating__label" for="{{ choice.id }}">
+                                                <i class="rating__icon rating__icon--star fa fa-star"></i>
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% if form.rating.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.rating.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Comments (Optional)</label>
+                            {{ form.comment(class="form-control", rows=5, placeholder="Tell us about your ride experience...") }}
+                            {% if form.comment.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.comment.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Submit Review</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.rating-group {
+    display: inline-flex;
+    font-size: 2rem;
+}
+
+.rating__icon {
+    pointer-events: none;
+}
+
+.rating__input {
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+.rating__label {
+    cursor: pointer;
+    padding: 0 0.1em;
+    color: #ddd;
+    margin-bottom: 0;
+}
+
+.rating__label--half {
+    padding-right: 0;
+    margin-right: -0.6em;
+    z-index: 2;
+}
+
+.rating__input:checked ~ .rating__label {
+    color: #ddd;
+}
+
+.rating__input:checked + .rating__label {
+    color: #ffc107;
+}
+
+.rating__label:hover,
+.rating__label:hover ~ .rating__label,
+.rating__input:not(:checked) + .rating__label:hover {
+    color: #ffc107;
+}
+</style>
+{% endblock %}

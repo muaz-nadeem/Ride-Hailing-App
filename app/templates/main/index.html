@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-10 mx-auto">
+                    <h1 class="hero-title text-shadow">Your Reliable Transportation Solution</h1>
+                    <p class="hero-subtitle text-shadow">Book a ride, track your journey, and enjoy a comfortable travel experience.</p>
+                    {% if not current_user.is_authenticated %}
+                        <div>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg me-3">Register as Customer</a>
+                            <a href="{{ url_for('auth.register_rider') }}" class="btn btn-outline-light btn-lg">Become a Driver</a>
+                        </div>
+                    {% else %}
+                        {% if current_user.is_customer() %}
+                            <a href="{{ url_for('customer.book_ride') }}" class="btn btn-primary btn-lg">Book a Ride</a>
+                        {% elif current_user.is_rider() %}
+                            <a href="{{ url_for('rider.dashboard') }}" class="btn btn-primary btn-lg">Driver Dashboard</a>
+                        {% else %}
+                            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-lg">Admin Dashboard</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <h2 class="section-title">Why Choose Our Service?</h2>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon-wrapper">
+                                <i class="fas fa-route feature-icon"></i>
+                            </div>
+                            <h3>Convenient Booking</h3>
+                            <p>Book a ride with just a few clicks. Choose your pickup location and destination easily.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon-wrapper">
+                                <i class="fas fa-shield-alt feature-icon"></i>
+                            </div>
+                            <h3>Safe &amp; Secure</h3>
+                            <p>All our drivers are verified and vehicles are regularly maintained for a safe journey.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon-wrapper">
+                                <i class="fas fa-money-bill-wave feature-icon"></i>
+                            </div>
+                            <h3>Transparent Pricing</h3>
+                            <p>Know the fare before booking. No hidden charges, pay only for what you see.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon-wrapper">
+                                <i class="fas fa-map-marked-alt feature-icon"></i>
+                            </div>
+                            <h3>Real-Time Tracking</h3>
+                            <p>Follow your ride's progress in real-time and share your trip details with loved ones.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon-wrapper">
+                                <i class="fas fa-headset feature-icon"></i>
+                            </div>
+                            <h3>24/7 Support</h3>
+                            <p>Our customer service team is available round the clock to assist you with any issues.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon-wrapper">
+                                <i class="fas fa-star feature-icon"></i>
+                            </div>
+                            <h3>Rated Drivers</h3>
+                            <p>Choose from our top-rated drivers and review your experience after each trip.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works-section">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="step-card mb-4">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="step-icon">1</div>
+                                <div>
+                                    <h4>Register an Account</h4>
+                                    <p>Create your customer account to get started or sign up as a driver to join our fleet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-card mb-4">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="step-icon">2</div>
+                                <div>
+                                    <h4>Book Your Ride</h4>
+                                    <p>Enter your pickup location and destination, choose a vehicle type, and get an instant fare estimate.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-card mb-4">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="step-icon">3</div>
+                                <div>
+                                    <h4>Track Your Ride</h4>
+                                    <p>Monitor your driver's location in real-time and get updates on your ride status.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="step-icon">4</div>
+                                <div>
+                                    <h4>Pay & Review</h4>
+                                    <p>Safely pay for your completed ride and share your experience by rating your driver.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 mx-auto text-center cta-content">
+                    <h2 class="cta-title">Ready to Get Started?</h2>
+                    <p class="cta-text">Join thousands of satisfied users enjoying our reliable transportation service. Register now to experience the convenience of our fleet service.</p>
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-cta btn-lg">Register Now</a>
+                    {% else %}
+                        {% if current_user.is_customer() %}
+                            <a href="{{ url_for('customer.book_ride') }}" class="btn btn-cta btn-lg">Book a Ride</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %} 

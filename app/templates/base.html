@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Fleet Management</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
+
+    <style>
+        .bg-primary-dark {
+            background-color: #0a4275 !important;
+        }
+    </style>
+
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                    <i class="fas fa-car-side me-2"></i>Fleet Management
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.about') }}">About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.contact') }}">Contact</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        {% if current_user.is_authenticated %}
+                            {% if current_user.is_admin() %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
+                                </li>
+                            {% elif current_user.is_rider() %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ url_for('rider.dashboard') }}">Rider Dashboard</a>
+                                </li>
+                            {% else %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ url_for('customer.dashboard') }}">Customer Dashboard</a>
+                                </li>
+                            {% endif %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-user me-1"></i> {{ current_user.username }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Profile</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mt-4 mb-5">
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Main content -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-primary text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Fleet Management</h5>
+                    <p>Your reliable transportation solution.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('main.about') }}" class="text-light">About Us</a></li>
+                        <li><a href="{{ url_for('main.contact') }}" class="text-light">Contact</a></li>
+                        <li><a href="{{ url_for('main.terms') }}" class="text-light">Terms of Service</a></li>
+                        <li><a href="{{ url_for('main.privacy') }}" class="text-light">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Connect With Us</h5>
+                    <div class="social-icons">
+                        <a href="#" class="text-light me-2"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#" class="text-light me-2"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-light me-2"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-light me-2"><i class="fab fa-linkedin fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="text-center">
+                <p>&copy; {{ now.year if now else 2024 }} Fleet Management. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Leaflet Encoded Polyline Utility -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-polylinedecorator/1.6.0/leaflet.polylineDecorator.min.js"></script>
+    <script>
+        // Add polyline encoder/decoder if not available
+        if (!L.Polyline.fromEncoded) {
+            L.Polyline.fromEncoded = function(encoded, options) {
+                // Decode the polyline
+                function decodePolyline(encoded) {
+                    var points = [];
+                    var index = 0, len = encoded.length;
+                    var lat = 0, lng = 0;
+                    
+                    while (index < len) {
+                        var b, shift = 0, result = 0;
+                        
+                        do {
+                            b = encoded.charCodeAt(index++) - 63;
+                            result |= (b & 0x1f) << shift;
+                            shift += 5;
+                        } while (b >= 0x20);
+                        
+                        var dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                        lat += dlat;
+                        
+                        shift = 0;
+                        result = 0;
+                        
+                        do {
+                            b = encoded.charCodeAt(index++) - 63;
+                            result |= (b & 0x1f) << shift;
+                            shift += 5;
+                        } while (b >= 0x20);
+                        
+                        var dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                        lng += dlng;
+                        
+                        points.push([lat * 1e-5, lng * 1e-5]);
+                    }
+                    
+                    return points;
+                }
+                
+                options = options || {};
+                return new L.Polyline(decodePolyline(encoded), options);
+            };
+        }
+    </script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

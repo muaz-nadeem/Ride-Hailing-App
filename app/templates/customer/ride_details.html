@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Ride Details</h1>
+        <a href="{{ url_for('customer.rides') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Rides
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Ride Information</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Status</h5>
+                        <span class="badge {{ ride.status }} fs-6">
+                            {{ ride.status|replace('_', ' ')|title }}
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <h5>Pickup</h5>
+                        <p class="mb-1">{{ ride.pickup_address }}</p>
+                        <small class="text-muted">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            {{ ride.pickup_latitude }}, {{ ride.pickup_longitude }}
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <h5>Destination</h5>
+                        <p class="mb-1">{{ ride.destination_address }}</p>
+                        <small class="text-muted">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            {{ ride.destination_latitude }}, {{ ride.destination_longitude }}
+                        </small>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h5>Date Requested</h5>
+                            <p>{{ ride.created_at.strftime('%b %d, %Y %H:%M') }}</p>
+                        </div>
+                        {% if ride.completed_at %}
+                        <div class="col-md-6">
+                            <h5>Date Completed</h5>
+                            <p>{{ ride.completed_at.strftime('%b %d, %Y %H:%M') }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <h6 class="text-muted">Estimated Fare</h6>
+                            <p>PKR {{ "%.2f"|format(ride.estimated_fare) }}</p>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-muted">Final Fare</h6>
+                            <p>PKR {{ "%.2f"|format(ride.final_fare) }}</p>
+                        </div>
+                    </div>
+
+                    {% if ride.payment_status %}
+                    <div class="mb-3">
+                        <h5>Payment Status</h5>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-{{ 'success' if ride.payment_status == 'completed' else 'warning' }} me-2">
+                                {{ ride.payment_status|title }}
+                            </span>
+                            {% if ride.payment_status == 'completed' %}
+                                <i class="fas fa-check-circle text-success"></i>
+                            {% endif %}
+                        </div>
+
+                        {% if ride.payment_status == 'completed' and request.args.get('payment_success') %}
+                        <div class="alert alert-success mt-2 mb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle fa-2x me-3"></i>
+                                <div>
+                                    <h5 class="mb-1">Payment Successful!</h5>
+                                    <p class="mb-0">Thank you for your payment. Your driver has been notified.</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if ride.status == 'completed' and ride.payment_status != 'completed' %}
+                    <div class="alert alert-warning mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                            <div>
+                                <h5 class="mb-1">Payment Required</h5>
+                                <p class="mb-0">Please complete payment for this ride to support your driver.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <a href="{{ url_for('customer.make_payment', ride_id=ride.id) }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-credit-card me-2"></i> Make Payment Now
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if ride.rider %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Driver Information</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <img src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Driver" class="rounded-circle" style="width: 60px; height: 60px;">
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ ride.rider.username }}</h5>
+                            <p class="text-muted mb-0">{{ ride.rider.phone }}</p>
+                        </div>
+                    </div>
+
+                    {% if ride.rider.rider_profile %}
+                    <div class="mb-3">
+                        <h5>Rating</h5>
+                        <div class="rating">
+                            {% set rating = ride.rider.rider_profile.rating|round(1) %}
+                            {% for i in range(5) %}
+                                {% if i < rating|int %}
+                                    <i class="fas fa-star"></i>
+                                {% elif i < rating and i >= rating|int %}
+                                    <i class="fas fa-star-half-alt"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="ms-2">{{ rating }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if ride.vehicle %}
+                    <div class="mb-3">
+                        <h5>Vehicle</h5>
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="me-3">
+                                <i class="fas fa-car fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">{{ ride.vehicle.make }} {{ ride.vehicle.model }}</h6>
+                                <p class="mb-0 text-muted">{{ ride.vehicle.color }} | {{ ride.vehicle.license_plate }}</p>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <small>Look for this vehicle at your pickup location</small>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if ride.status == 'completed' and not ride.review %}
+                    <div class="d-grid">
+                        <a href="{{ url_for('customer.add_review', ride_id=ride.id) }}" class="btn btn-warning">
+                            <i class="fas fa-star me-2"></i> Rate This Ride
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if ride.review %}
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Your Review</h4>
+                </div>
+                <div class="card-body">
+                    <div class="rating mb-3">
+                        {% for i in range(5) %}
+                            <i class="{{ 'fas' if i < ride.review.rating else 'far' }} fa-star"></i>
+                        {% endfor %}
+                        <span class="ms-2">{{ ride.review.rating }}/5</span>
+                    </div>
+
+                    {% if ride.review.comment %}
+                    <div class="mb-3">
+                        <h5>Your Comment</h5>
+                        <p class="mb-1">{{ ride.review.comment }}</p>
+                        <small class="text-muted">{{ ride.review.created_at.strftime('%b %d, %Y') }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Ride Map</h4>
+                </div>
+                <div class="card-body">
+                    <div id="ride-map" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the map
+        const map = initMap('ride-map', [{{ ride.pickup_latitude }}, {{ ride.pickup_longitude }}], 13);
+
+        // Add markers
+        const pickupMarker = addMarker(
+            map,
+            [{{ ride.pickup_latitude }}, {{ ride.pickup_longitude }}],
+            'Pickup: {{ ride.pickup_address }}'
+        );
+
+        const destinationMarker = addMarker(
+            map,
+            [{{ ride.destination_latitude }}, {{ ride.destination_longitude }}],
+            'Destination: {{ ride.destination_address }}',
+            destinationIcon
+        );
+
+        // Draw route
+        const route = drawRoute(
+            map,
+            [{{ ride.pickup_latitude }}, {{ ride.pickup_longitude }}],
+            [{{ ride.destination_latitude }}, {{ ride.destination_longitude }}]
+        );
+
+        {% if ride.status in ['accepted', 'in_progress'] and ride.rider and ride.rider.rider_profile %}
+        // Add rider marker if the ride is accepted or in progress
+        const riderLatLng = [
+            {{ ride.rider.rider_profile.current_latitude or ride.pickup_latitude }},
+            {{ ride.rider.rider_profile.current_longitude or ride.pickup_longitude }}
+        ];
+
+        {% if ride.vehicle %}
+        // Create a custom popup with vehicle details
+        const vehiclePopupContent = `
+            <div class="vehicle-popup">
+                <h6>Driver: {{ ride.rider.username }}</h6>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-car text-primary me-2"></i>
+                    <div>
+                        <strong>{{ ride.vehicle.make }} {{ ride.vehicle.model }}</strong><br>
+                        <small>{{ ride.vehicle.color }} | {{ ride.vehicle.license_plate }}</small>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Add marker with custom popup
+        const riderMarker = L.marker(riderLatLng, {icon: riderIcon}).addTo(map)
+            .bindPopup(vehiclePopupContent);
+
+        // Open popup by default to show vehicle info
+        riderMarker.openPopup();
+        {% else %}
+        // Fallback if vehicle info not available
+        const riderMarker = addMarker(
+            map,
+            riderLatLng,
+            'Driver: {{ ride.rider.username }}',
+            riderIcon
+        );
+        {% endif %}
+        {% endif %}
+    });
+</script>
+{% endblock %}

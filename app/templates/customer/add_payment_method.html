@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Add Payment Method</h1>
+        <a href="{{ url_for('customer.payment_methods') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Payment Methods
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">New Payment Method</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('customer.add_payment_method') }}" id="payment-form">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="payment_type" class="form-label">Payment Type <span class="text-danger">*</span></label>
+                            {{ form.payment_type(class="form-select") }}
+                            {% if form.payment_type.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.payment_type.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div id="card-details">
+                            <div class="mb-3">
+                                <label for="card_number" class="form-label card-required-label">Card Number</label>
+                                {{ form.card_number(class="form-control", placeholder="XXXX XXXX XXXX XXXX") }}
+                                {% if form.card_number.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.card_number.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="card_expiry" class="form-label card-required-label">Expiry Date</label>
+                                {{ form.card_expiry(class="form-control", placeholder="MM/YYYY") }}
+                                {% if form.card_expiry.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.card_expiry.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="card_holder_name" class="form-label card-required-label">Card Holder Name</label>
+                                {{ form.card_holder_name(class="form-control", placeholder="Name as it appears on the card") }}
+                                {% if form.card_holder_name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.card_holder_name.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_default(class="form-check-input") }}
+                                <label class="form-check-label" for="is_default">
+                                    Set as default payment method
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentTypeSelect = document.getElementById('payment_type');
+        const cardDetailsDiv = document.getElementById('card-details');
+        const cardNumberField = document.getElementById('card_number');
+        const cardExpiryField = document.getElementById('card_expiry');
+        const cardHolderField = document.getElementById('card_holder_name');
+        const requiredLabels = document.querySelectorAll('.card-required-label');
+        
+        function toggleCardFields() {
+            const isCardPayment = paymentTypeSelect.value === 'credit_card' || paymentTypeSelect.value === 'debit_card';
+            
+            if (paymentTypeSelect.value === 'paypal') {
+                cardDetailsDiv.style.display = 'none';
+                // Clear any validation errors when switching to PayPal
+                cardNumberField.setCustomValidity('');
+                cardExpiryField.setCustomValidity('');
+                cardHolderField.setCustomValidity('');
+            } else {
+                cardDetailsDiv.style.display = 'block';
+                
+                // For credit and debit cards, update the required status
+                if (isCardPayment) {
+                    requiredLabels.forEach(label => {
+                        if (!label.querySelector('.text-danger')) {
+                            label.innerHTML += ' <span class="text-danger">*</span>';
+                        }
+                    });
+                    
+                    cardNumberField.required = true;
+                    cardExpiryField.required = true;
+                    cardHolderField.required = true;
+                } else {
+                    // For other payment types, fields are optional
+                    requiredLabels.forEach(label => {
+                        const asterisk = label.querySelector('.text-danger');
+                        if (asterisk) {
+                            asterisk.remove();
+                        }
+                    });
+                    
+                    cardNumberField.required = false;
+                    cardExpiryField.required = false;
+                    cardHolderField.required = false;
+                }
+            }
+        }
+        
+        // Initial toggle
+        toggleCardFields();
+        
+        // Toggle on change
+        paymentTypeSelect.addEventListener('change', toggleCardFields);
+        
+        // Additional client-side validation before form submission
+        document.getElementById('payment-form').addEventListener('submit', function(event) {
+            const isCardPayment = paymentTypeSelect.value === 'credit_card' || paymentTypeSelect.value === 'debit_card';
+            
+            if (isCardPayment) {
+                let hasError = false;
+                
+                if (!cardNumberField.value.trim()) {
+                    cardNumberField.setCustomValidity('Card number is required');
+                    hasError = true;
+                } else {
+                    cardNumberField.setCustomValidity('');
+                }
+                
+                if (!cardExpiryField.value.trim()) {
+                    cardExpiryField.setCustomValidity('Expiry date is required');
+                    hasError = true;
+                } else {
+                    cardExpiryField.setCustomValidity('');
+                }
+                
+                if (!cardHolderField.value.trim()) {
+                    cardHolderField.setCustomValidity('Card holder name is required');
+                    hasError = true;
+                } else {
+                    cardHolderField.setCustomValidity('');
+                }
+                
+                if (hasError) {
+                    event.preventDefault();
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

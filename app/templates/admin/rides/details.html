@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <a href="{{ url_for('admin.rides') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Rides
+        </a>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Ride Details</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2 mb-3">General Information</h5>
+                    <p><strong>Ride ID:</strong> {{ ride.id }}</p>
+                    <p><strong>Status:</strong> <span class="badge {{ ride.status }}">{{ ride.status.replace('_', ' ').title() }}</span></p>
+                    <p><strong>Created At:</strong> {{ ride.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    
+                    {% if ride.accepted_at %}
+                    <p><strong>Accepted At:</strong> {{ ride.accepted_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    {% endif %}
+                    
+                    {% if ride.started_at %}
+                    <p><strong>Started At:</strong> {{ ride.started_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    {% endif %}
+                    
+                    {% if ride.completed_at %}
+                    <p><strong>Completed At:</strong> {{ ride.completed_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2 mb-3">Fare Information</h5>
+                    <p><strong>Estimated Fare:</strong> PKR {{ ride.estimated_fare }}</p>
+                    
+                    {% if ride.final_fare %}
+                    <p><strong>Final Fare:</strong> PKR {{ ride.final_fare }}</p>
+                    {% endif %}
+                    
+                    <p><strong>Payment Status:</strong> 
+                        <span class="badge {{ 'bg-success' if ride.payment_status == 'completed' else 'bg-warning' }}">
+                            {{ ride.payment_status.title() }}
+                        </span>
+                    </p>
+                    
+                    {% if ride.payment_method %}
+                    <p><strong>Payment Method:</strong> {{ ride.payment_method }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <hr>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2 mb-3">Customer Information</h5>
+                    <p><strong>Name:</strong> 
+                        <a href="{{ url_for('admin.customer_details', customer_id=ride.customer.id) }}">
+                            {{ ride.customer.username }}
+                        </a>
+                    </p>
+                    <p><strong>Email:</strong> {{ ride.customer.email }}</p>
+                    <p><strong>Phone:</strong> {{ ride.customer.phone }}</p>
+                </div>
+                <div class="col-md-6">
+                    {% if ride.rider %}
+                    <h5 class="border-bottom pb-2 mb-3">Driver Information</h5>
+                    <p><strong>Name:</strong> 
+                        <a href="{{ url_for('admin.rider_details', rider_id=ride.rider.id) }}">
+                            {{ ride.rider.username }}
+                        </a>
+                    </p>
+                    <p><strong>Email:</strong> {{ ride.rider.email }}</p>
+                    <p><strong>Phone:</strong> {{ ride.rider.phone }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <hr>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2 mb-3">Pickup Location</h5>
+                    <p><strong>Address:</strong> {{ ride.pickup_address }}</p>
+                    <p><strong>Coordinates:</strong> {{ ride.pickup_latitude }}, {{ ride.pickup_longitude }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2 mb-3">Destination Location</h5>
+                    <p><strong>Address:</strong> {{ ride.destination_address }}</p>
+                    <p><strong>Coordinates:</strong> {{ ride.destination_latitude }}, {{ ride.destination_longitude }}</p>
+                </div>
+            </div>
+            
+            {% if ride.vehicle %}
+            <hr>
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <h5 class="border-bottom pb-2 mb-3">Vehicle Information</h5>
+                    <p><strong>Make & Model:</strong> 
+                        <a href="{{ url_for('admin.vehicle_details', vehicle_id=ride.vehicle.id) }}">
+                            {{ ride.vehicle.make }} {{ ride.vehicle.model }}
+                        </a>
+                    </p>
+                    <p><strong>Type:</strong> {{ ride.vehicle.vehicle_type.capitalize() }}</p>
+                    <p><strong>Color:</strong> {{ ride.vehicle.color }}</p>
+                    <p><strong>License Plate:</strong> {{ ride.vehicle.license_plate }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if ride.review %}
+            <hr>
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <h5 class="border-bottom pb-2 mb-3">Customer Review</h5>
+                    <div class="d-flex mb-2">
+                        <div class="me-2"><strong>Rating:</strong></div>
+                        <div class="rating-stars">
+                            {% for i in range(5) %}
+                                {% if i < ride.review.rating %}
+                                    <i class="fas fa-star text-warning"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="ms-2">({{ ride.review.rating }}/5)</span>
+                        </div>
+                    </div>
+                    <p><strong>Comment:</strong> {{ ride.review.comment }}</p>
+                    <p><strong>Submitted:</strong> {{ ride.review.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Route Map</h4>
+        </div>
+        <div class="card-body">
+            <div id="ride-map" style="height: 400px;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize map
+        var map = initMap('ride-map', [{{ ride.pickup_latitude }}, {{ ride.pickup_longitude }}], 13);
+        
+        // Add pickup marker
+        var pickupMarker = addMarker(
+            map, 
+            [{{ ride.pickup_latitude }}, {{ ride.pickup_longitude }}], 
+            "Pickup: {{ ride.pickup_address }}",
+            customerIcon
+        );
+        
+        // Add destination marker
+        var destMarker = addMarker(
+            map, 
+            [{{ ride.destination_latitude }}, {{ ride.destination_longitude }}], 
+            "Destination: {{ ride.destination_address }}",
+            destinationIcon
+        );
+        
+        // Draw route between pickup and destination
+        drawRoute(
+            map, 
+            [{{ ride.pickup_latitude }}, {{ ride.pickup_longitude }}],
+            [{{ ride.destination_latitude }}, {{ ride.destination_longitude }}]
+        );
+        
+        // Fit bounds to show both markers
+        var bounds = L.latLngBounds(
+            [{{ ride.pickup_latitude }}, {{ ride.pickup_longitude }}],
+            [{{ ride.destination_latitude }}, {{ ride.destination_longitude }}]
+        );
+        map.fitBounds(bounds);
+    });
+</script>
+{% endblock %} 

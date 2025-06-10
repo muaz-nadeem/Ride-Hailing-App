@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container py-4">
+        <h1 class="mb-4">Admin Dashboard</h1>
+        
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-4 mb-md-0">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="stats-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stats-number">{{ total_customers }}</div>
+                        <div class="stats-title">Total Customers</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4 mb-md-0">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="stats-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="stats-number">{{ total_riders }}</div>
+                        <div class="stats-title">Total Drivers</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4 mb-md-0">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="stats-icon">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <div class="stats-number">{{ total_vehicles }}</div>
+                        <div class="stats-title">Vehicles</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="stats-icon">
+                            <i class="fas fa-route"></i>
+                        </div>
+                        <div class="stats-number">{{ total_rides }}</div>
+                        <div class="stats-title">Total Rides</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-3 mb-4 mb-md-0">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="stats-icon {% if active_riders > 0 %}text-success{% endif %}">
+                            <i class="fas fa-car-side"></i>
+                        </div>
+                        <div class="stats-number">{{ active_riders }}</div>
+                        <div class="stats-title">Active Drivers</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4 mb-md-0">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="stats-icon {% if pending_applications > 0 %}text-warning{% endif %}">
+                            <i class="fas fa-user-clock"></i>
+                        </div>
+                        <div class="stats-number">{{ pending_applications }}</div>
+                        <div class="stats-title">Pending Applications</div>
+                        {% if pending_applications > 0 %}
+                            <a href="{{ url_for('admin.riders') }}" class="btn btn-sm btn-warning mt-2">Review</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4 mb-md-0">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="stats-icon">
+                            <i class="fas fa-taxi"></i>
+                        </div>
+                        <div class="stats-number">{{ todays_rides }}</div>
+                        <div class="stats-title">Today's Rides</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="stats-icon text-success">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stats-number">PKR {{ todays_revenue }}</div>
+                        <div class="stats-title">Today's Revenue</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Quick Actions</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3 mb-md-0">
+                                <a href="{{ url_for('admin.vehicles') }}" class="btn btn-primary w-100">
+                                    <i class="fas fa-car-side me-2"></i> Manage Vehicles
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3 mb-md-0">
+                                <a href="{{ url_for('admin.riders') }}" class="btn btn-info text-white w-100">
+                                    <i class="fas fa-user-tie me-2"></i> Manage Drivers
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3 mb-md-0">
+                                <a href="{{ url_for('admin.customers') }}" class="btn btn-success w-100">
+                                    <i class="fas fa-users me-2"></i> Manage Customers
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{{ url_for('admin.analytics') }}" class="btn btn-warning w-100">
+                                    <i class="fas fa-chart-line me-2"></i> View Analytics
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="row">
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Recent Rides</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_rides %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Customer</th>
+                                            <th>Driver</th>
+                                            <th>Status</th>
+                                            <th>Created</th>
+                                            <th>Fare</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for ride in recent_rides %}
+                                            <tr>
+                                                <td>{{ ride.id }}</td>
+                                                <td>{{ ride.customer.username }}</td>
+                                                <td>
+                                                    {% if ride.rider %}
+                                                        {{ ride.rider.username }}
+                                                    {% else %}
+                                                        <span class="text-muted">Not assigned</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="badge {{ ride.status }}">
+                                                        {{ ride.status.replace('_', ' ').title() }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ ride.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                                <td>PKR {{ ride.final_fare or ride.estimated_fare }}</td>
+                                                <td>
+                                                    <a href="{{ url_for('admin.ride_details', ride_id=ride.id) }}" class="btn btn-sm btn-info text-white">View</a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('admin.rides') }}" class="btn btn-outline-primary">View All Rides</a>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <p>No recent rides.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">System Status</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Active Rides:</span>
+                                <span class="badge bg-primary">{{ total_rides - completed_rides }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ (total_rides - completed_rides) / total_rides * 100 if total_rides > 0 else 0 }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Completed Rides:</span>
+                                <span class="badge bg-success">{{ completed_rides }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ completed_rides / total_rides * 100 if total_rides > 0 else 0 }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Available Drivers:</span>
+                                <span class="badge bg-info">{{ active_riders }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: {{ active_riders / total_riders * 100 if total_riders > 0 else 0 }}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mt-4">
+                            <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i> System Information</h5>
+                            <p class="mb-0">Everything is running smoothly. Last maintenance: 2023-05-01</p>
+                        </div>
+                        
+                        {% if pending_applications > 0 %}
+                            <div class="alert alert-warning mt-3">
+                                <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i> Attention Required</h5>
+                                <p class="mb-0">{{ pending_applications }} driver application{{ 's' if pending_applications > 1 else '' }} pending approval.</p>
+                                <div class="mt-2">
+                                    <a href="{{ url_for('admin.riders') }}" class="btn btn-sm btn-warning">Review Applications</a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

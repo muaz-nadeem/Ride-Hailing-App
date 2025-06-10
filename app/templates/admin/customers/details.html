@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <a href="{{ url_for('admin.customers') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Customers
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <!-- Customer Profile Card -->
+            <div class="card shadow h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Customer Profile</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-circle mx-auto mb-3">
+                            <span class="initials">{{ customer.username[0].upper() }}</span>
+                        </div>
+                        <h4>{{ customer.username }}</h4>
+                        <p class="text-muted">Customer</p>
+                    </div>
+                    
+                    <div class="customer-info">
+                        <p>
+                            <i class="fas fa-envelope me-2"></i>
+                            <strong>Email:</strong> {{ customer.email }}
+                        </p>
+                        <p>
+                            <i class="fas fa-phone me-2"></i>
+                            <strong>Phone:</strong> {{ customer.phone }}
+                        </p>
+                        <p>
+                            <i class="fas fa-calendar me-2"></i>
+                            <strong>Registered:</strong> {{ customer.created_at.strftime('%Y-%m-%d') }}
+                        </p>
+                        <p>
+                            <i class="fas fa-route me-2"></i>
+                            <strong>Total Rides:</strong> 
+                            {% if customer.rides %}
+                                {{ customer.rides.count() }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <!-- Recent Rides -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Recent Rides</h4>
+                </div>
+                <div class="card-body">
+                    {% if recent_rides %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Date</th>
+                                        <th>Driver</th>
+                                        <th>Status</th>
+                                        <th>Fare</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ride in recent_rides %}
+                                        <tr>
+                                            <td>{{ ride.id }}</td>
+                                            <td>{{ ride.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                            <td>
+                                                {% if ride.rider %}
+                                                    {{ ride.rider.username }}
+                                                {% else %}
+                                                    <span class="text-muted">Not assigned</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge {{ ride.status }}">
+                                                    {{ ride.status.replace('_', ' ').title() }}
+                                                </span>
+                                            </td>
+                                            <td>PKR {{ ride.final_fare or ride.estimated_fare }}</td>
+                                            <td>
+                                                <a href="{{ url_for('admin.ride_details', ride_id=ride.id) }}" class="btn btn-sm btn-info text-white">View</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="mb-0">No rides found for this customer.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Reviews Given -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Reviews Given</h4>
+                </div>
+                <div class="card-body">
+                    {% if reviews %}
+                        <div class="list-group">
+                            {% for review in reviews %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <h5 class="mb-0">
+                                                Ride #{{ review.ride_id }} with 
+                                                {% if review.rider %}
+                                                    <a href="{{ url_for('admin.rider_details', rider_id=review.rider_id) }}">{{ review.rider.username }}</a>
+                                                {% else %}
+                                                    Unknown Driver
+                                                {% endif %}
+                                            </h5>
+                                            <small class="text-muted">{{ review.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                        </div>
+                                        <div class="rating-stars">
+                                            {% for i in range(5) %}
+                                                {% if i < review.rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <p class="mb-0">{{ review.comment }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="mb-0">No reviews given by this customer.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background-color: #007bff;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .initials {
+        font-size: 42px;
+        color: white;
+        font-weight: bold;
+    }
+    
+    .badge.completed {
+        background-color: #28a745;
+    }
+    
+    .badge.pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    
+    .badge.accepted {
+        background-color: #17a2b8;
+    }
+    
+    .badge.in_progress {
+        background-color: #007bff;
+    }
+    
+    .badge.cancelled {
+        background-color: #dc3545;
+    }
+</style>
+{% endblock %} 

@@ -1,0 +1,485 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container py-4">
+        <!-- Dashboard Header -->
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <h1 class="mb-2">Welcome, {{ current_user.username }}</h1>
+                <p class="text-muted">Manage your rides and track your earnings from your driver dashboard</p>
+            </div>
+            <div class="col-lg-4 text-lg-end d-flex justify-content-lg-end align-items-center">
+                <form action="{{ url_for('rider.toggle_availability') }}" method="post" class="d-inline">
+                    <button type="submit" class="btn {% if rider_profile.is_available %}btn-warning{% else %}btn-success{% endif %} btn-lg">
+                        {% if rider_profile.is_available %}
+                            <i class="fas fa-toggle-on me-2"></i> Go Offline
+                        {% else %}
+                            <i class="fas fa-toggle-off me-2"></i> Go Online
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% set recent_payments = recent_rides|selectattr('payment_status', 'equalto', 'completed')|list %}
+        {% if recent_payments %}
+        <!-- Payment Notification -->
+        <div class="alert alert-success mb-4 shadow-sm">
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <i class="fas fa-money-bill-wave fa-2x"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="mb-1">Recent Payments Received</h5>
+                    <p class="mb-0">You have received {{ recent_payments|length }} payment{% if recent_payments|length > 1 %}s{% endif %} recently.</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('rider.earnings') }}" class="btn btn-outline-success">
+                        <i class="fas fa-dollar-sign me-2"></i> View Earnings
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Status Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-3 text-center mb-4 mb-md-0">
+                        <div class="mb-3">
+                            <div class="p-4 {% if rider_profile.is_available %}bg-success{% else %}bg-secondary{% endif %} bg-opacity-10 text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                                <i class="fas {% if rider_profile.is_available %}fa-car{% else %}fa-car-side{% endif %} fa-3x {% if rider_profile.is_available %}text-success{% else %}text-secondary{% endif %}"></i>
+                            </div>
+                        </div>
+                        <h4 class="mb-0">Status: <span class="{% if rider_profile.is_available %}text-success{% else %}text-secondary{% endif %}">
+                            {% if rider_profile.is_available %}Online{% else %}Offline{% endif %}
+                        </span></h4>
+                    </div>
+                    <div class="col-md-5 mb-4 mb-md-0">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body">
+                                <h5 class="mb-3">Vehicle & Rating</h5>
+                                {% if rider_profile.vehicle %}
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="me-3 bg-primary bg-opacity-10 p-3 rounded">
+                                            <i class="fas fa-car text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ rider_profile.vehicle.make }} {{ rider_profile.vehicle.model }}</h6>
+                                            <p class="mb-0 text-muted">{{ rider_profile.vehicle.color }} | {{ rider_profile.vehicle.license_plate }}</p>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-warning mt-0 mb-2">
+                                        <p class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i> No vehicle assigned</p>
+                                        <a href="{{ url_for('rider.manage_vehicle') }}" class="btn btn-sm btn-primary mt-2">Add Your Vehicle</a>
+                                    </div>
+                                {% endif %}
+
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 bg-warning bg-opacity-10 p-3 rounded">
+                                        <i class="fas fa-star text-warning"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Your Rating</h6>
+                                        <div class="rating {% if rider_profile.rating < 3.5 %}low{% endif %}">
+                                            {% for i in range(5) %}
+                                                {% if i < rider_profile.rating|int %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% elif i < rider_profile.rating %}
+                                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span class="ms-2">{{ rider_profile.rating }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <a href="{{ url_for('rider.manage_vehicle') }}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                    <i class="fas fa-car fa-2x mb-2"></i>
+                                    <span>Manage Vehicle</span>
+                                </a>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <a href="{{ url_for('rider.earnings') }}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                    <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                                    <span>My Earnings</span>
+                                </a>
+                            </div>
+                            <div class="col-12">
+                                <a href="{{ url_for('rider.reviews') }}" class="btn btn-outline-info w-100 d-flex align-items-center justify-content-center p-3">
+                                    <i class="fas fa-star me-2"></i> My Reviews
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earnings Summary -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-4 mb-md-0">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <span class="bg-success bg-opacity-10 p-3 rounded-circle d-inline-block">
+                                <i class="fas fa-route fa-3x text-success"></i>
+                            </span>
+                        </div>
+                        <h3>{{ recent_rides|length }}</h3>
+                        <p class="text-muted">Recent Rides</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 mb-md-0">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <span class="bg-primary bg-opacity-10 p-3 rounded-circle d-inline-block">
+                                <i class="fas fa-coins fa-3x text-primary"></i>
+                            </span>
+                        </div>
+                        <h3>PKR {{ recent_rides|sum(attribute='final_fare')|default(0)|round(2) }}</h3>
+                        <p class="text-muted">Recent Earnings</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <span class="bg-info bg-opacity-10 p-3 rounded-circle d-inline-block">
+                                <i class="fas fa-percentage fa-3x text-info"></i>
+                            </span>
+                        </div>
+                        <h3>{{ recent_rides|selectattr('status', 'equalto', 'completed')|list|length }}</h3>
+                        <p class="text-muted">Completed Rides</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Ride -->
+        {% if active_ride %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Current Ride</h4>
+                    <span class="badge bg-light text-primary rounded-pill">In Progress</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-6 p-4">
+                            <h5 class="mb-3">Ride Details</h5>
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="me-3 bg-info bg-opacity-10 p-2 rounded">
+                                        <i class="fas fa-info-circle text-info"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Status</h6>
+                                        <span class="badge {{ active_ride.status }} rounded-pill">{{ active_ride.status.replace('_', ' ').title() }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="me-3 bg-primary bg-opacity-10 p-2 rounded">
+                                        <i class="fas fa-user text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Customer</h6>
+                                        <p class="mb-0">{{ active_ride.customer.username }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="me-3 bg-success bg-opacity-10 p-2 rounded">
+                                        <i class="fas fa-map-marker-alt text-success"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Pickup</h6>
+                                        <p class="mb-0">{{ active_ride.pickup_address }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="me-3 bg-danger bg-opacity-10 p-2 rounded">
+                                        <i class="fas fa-map-pin text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Destination</h6>
+                                        <p class="mb-0">{{ active_ride.destination_address }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="me-3 bg-warning bg-opacity-10 p-2 rounded">
+                                        <i class="fas fa-money-bill-wave text-warning"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Estimated Fare</h6>
+                                        <p class="mb-0">PKR {{ active_ride.estimated_fare }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if active_ride.status == 'accepted' %}
+                                <form action="{{ url_for('rider.start_ride', ride_id=active_ride.id) }}" method="post">
+                                    <button type="submit" class="btn btn-success btn-lg w-100">
+                                        <i class="fas fa-play me-2"></i> Start Ride
+                                    </button>
+                                </form>
+                            {% elif active_ride.status == 'in_progress' %}
+                                <form action="{{ url_for('rider.complete_ride', ride_id=active_ride.id) }}" method="post">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                                        <i class="fas fa-check me-2"></i> Complete Ride
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <div id="rideMap" style="height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Available Rides -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Available Ride Requests</h4>
+                <button type="button" id="refresh-rides-btn" class="btn btn-sm btn-primary">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body" id="pending-rides-container">
+                {% include 'rider/partials/pending_rides.html' %}
+            </div>
+        </div>
+
+        <!-- Recent Rides -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Recent Completed Rides</h4>
+                <a href="{{ url_for('rider.earnings') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-list me-1"></i> View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_rides %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Fare</th>
+                                    <th>Payment</th>
+                                    <th>Rating</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ride in recent_rides %}
+                                    <tr>
+                                        <td>{{ ride.completed_at.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-2">
+                                                    <img src="{{ url_for('static', filename='img/default-profile.png') }}" class="rounded-circle" width="32" height="32" alt="Customer">
+                                                </div>
+                                                {{ ride.customer.username }}
+                                            </div>
+                                        </td>
+                                        <td>{{ ride.pickup_address|truncate(20) }}</td>
+                                        <td>{{ ride.destination_address|truncate(20) }}</td>
+                                        <td><strong>PKR {{ ride.final_fare or ride.estimated_fare }}</strong></td>
+                                        <td>
+                                            <span class="badge {% if ride.payment_status == 'completed' %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
+                                                {{ ride.payment_status.title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if ride.review %}
+                                                <span class="rating {% if ride.review.rating < 3.5 %}low{% endif %}">
+                                                    {% for i in range(ride.review.rating) %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    {% endfor %}
+                                                    {% for i in range(5 - ride.review.rating) %}
+                                                        <i class="far fa-star text-warning"></i>
+                                                    {% endfor %}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">Not rated</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="fas fa-car-side fa-4x text-muted"></i>
+                        </div>
+                        <h5 class="mb-3">No Completed Rides Yet</h5>
+                        <p class="text-muted mb-0">Complete rides to start earning money.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .badge.completed {
+        background-color: #28a745;
+    }
+    .badge.cancelled {
+        background-color: #dc3545;
+    }
+    .badge.requested {
+        background-color: #6c757d;
+    }
+    .badge.accepted {
+        background-color: #17a2b8;
+    }
+    .badge.in_progress {
+        background-color: #007bff;
+    }
+    
+    .rating .fa-star, .rating .fa-star-half-alt {
+        color: #ffc107;
+    }
+    
+    .rating.low .fa-star, .rating.low .fa-star-half-alt {
+        color: #fd7e14;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+    {% if active_ride %}
+        <script>
+            // Initialize active ride map
+            document.addEventListener('DOMContentLoaded', function() {
+                const map = initMap('rideMap');
+
+                // Add pickup and destination markers
+                const pickupLatLng = [{{ active_ride.pickup_latitude }}, {{ active_ride.pickup_longitude }}];
+                const destLatLng = [{{ active_ride.destination_latitude }}, {{ active_ride.destination_longitude }}];
+
+                addMarker(map, pickupLatLng, 'Pickup: {{ active_ride.pickup_address }}', customerIcon);
+                addMarker(map, destLatLng, 'Destination: {{ active_ride.destination_address }}', destinationIcon);
+
+                // Draw route
+                drawRoute(map, pickupLatLng, destLatLng);
+
+                // Add rider's current location
+                {% if rider_profile.current_latitude and rider_profile.current_longitude %}
+                    const riderLatLng = [{{ rider_profile.current_latitude }}, {{ rider_profile.current_longitude }}];
+                    addMarker(map, riderLatLng, 'Your location', riderIcon);
+                {% endif %}
+
+                // Update location periodically if ride is in progress
+                {% if active_ride.status == 'in_progress' %}
+                    // Get location every 30 seconds and update
+                    const locationUpdateInterval = setInterval(function() {
+                        getCurrentLocation(function(latlng) {
+                            if (latlng) {
+                                updateRiderLocation(latlng[0], latlng[1]);
+                            }
+                        });
+                    }, 30000);
+
+                    // Initial location update
+                    getCurrentLocation(function(latlng) {
+                        if (latlng) {
+                            updateRiderLocation(latlng[0], latlng[1]);
+                        }
+                    });
+                {% endif %}
+            });
+        </script>
+    {% endif %}
+
+    <script>
+        // Function to check for new ride requests
+        let lastRideCount = 0;
+        let hasNotified = false;
+
+        function checkForNewRides() {
+            fetch('{{ url_for('rider.check_new_rides') }}')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Checking for new rides:', data);
+
+                    if (data.has_new_rides && data.count > lastRideCount && !hasNotified) {
+                        // Play notification sound
+                        const audio = new Audio('{{ url_for('static', filename='notification.mp3') }}');
+                        audio.play().catch(e => console.log('Audio play error:', e));
+
+                        // Show browser notification if permissions granted
+                        if (Notification.permission === "granted") {
+                            const notification = new Notification('New Ride Request', {
+                                body: 'You have ' + data.count + ' new ride request(s)!',
+                                icon: '{{ url_for('static', filename='img/car-icon.png') }}'
+                            });
+                        }
+
+                        // Set notification flag to avoid repeating
+                        hasNotified = true;
+
+                        // Auto-refresh the pending rides
+                        refreshPendingRides('pending-rides-container');
+
+                    } else if (!data.has_new_rides) {
+                        // Reset notification flag
+                        hasNotified = false;
+                    } else if (data.count !== lastRideCount) {
+                        // Reset notification flag if count changes
+                        hasNotified = false;
+
+                        // Auto-refresh the pending rides
+                        refreshPendingRides('pending-rides-container');
+                    }
+
+                    // Update count
+                    lastRideCount = data.count;
+                })
+                .catch(error => console.error('Error checking for new rides:', error));
+        }
+
+        // Add event listener for the refresh button
+        document.getElementById('refresh-rides-btn').addEventListener('click', function() {
+            refreshPendingRides('pending-rides-container');
+        });
+
+        // Check for permission to show notifications
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+
+        // Check for new rides every 30 seconds
+        setInterval(checkForNewRides, 30000);
+
+        // Initial check
+        checkForNewRides();
+    </script>
+{% endblock %}
